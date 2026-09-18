@@ -1,1 +1,22 @@
 # Changelog
+
+## 1.0.0 (2026-09-18)
+
+
+### Funcionalidades
+
+* track the Correios packages tied to an account ([5ffc03c](https://github.com/roquerodrigo/ha-correios/commit/5ffc03c8e6786f9c8dd1e10232c317c4ff844f9a))
+
+
+### Correções de bugs
+
+* **card:** formata datas conforme as preferências do Home Assistant ([f077bb1](https://github.com/roquerodrigo/ha-correios/commit/f077bb11f838ebd589c18042b4700a7d60c27c54))
+* **sensor:** expõe a próxima entrega como timestamp ([04e6a16](https://github.com/roquerodrigo/ha-correios/commit/04e6a163e244e412d29f74893d9084ba92c43ae2))
+
+
+### Documentação
+
+* adota o português do Brasil como idioma do repositório ([d61fcc9](https://github.com/roquerodrigo/ha-correios/commit/d61fcc965247b0efa1c3dcbbfdfb44ef7a6daab9))
+* aponta o crédito do template para o ha-integration-blueprint ([73a14f6](https://github.com/roquerodrigo/ha-correios/commit/73a14f6d95e19b7c9d1a3690ef7adc65a3475200))
+
+## Changelog
