@@ -50,7 +50,7 @@ O projeto usa o [ruff](https://docs.astral.sh/ruff/) (configuração no `pyproje
 
 ## Teste a sua alteração
 
-Este projeto é baseado no template [integration_blueprint](https://github.com/ludeeus/integration_blueprint).
+Este projeto é baseado no [ha-integration-blueprint](https://github.com/roquerodrigo/ha-integration-blueprint).
 
 Execute `scripts/setup` uma vez para criar o ambiente virtual gerenciado pelo `uv` e, em seguida, `scripts/develop` para iniciar uma instância independente do Home Assistant em modo debug, com a integração carregada e o arquivo [`configuration.yaml`](./config/configuration.yaml) incluído.
 
