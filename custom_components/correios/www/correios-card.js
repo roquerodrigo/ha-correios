@@ -57,22 +57,55 @@ const escapeHtml = (value) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character],
   );
 
-const formatDate = (hass, isoDate) => {
-  if (!isoDate) return "";
-  const [year, month, day] = isoDate.split("-").map(Number);
-  return new Intl.DateTimeFormat(resolveLanguage(hass), {
-    day: "2-digit",
-    month: "short",
-  }).format(new Date(year, month - 1, day));
+const REFERENCE_EVENING = new Date("January 1, 2023 22:00:00");
+const dateFormatters = new Map();
+
+const usesAmPm = (locale) => {
+  const timeFormat = locale?.time_format ?? "language";
+  if (timeFormat === "12") return true;
+  if (timeFormat === "24") return false;
+  const probeLanguage = timeFormat === "language" ? locale?.language : undefined;
+  return REFERENCE_EVENING.toLocaleString(probeLanguage).includes("10");
 };
 
-const formatDateTime = (hass, isoDateTime) => {
-  if (!isoDateTime) return "";
-  return new Intl.DateTimeFormat(resolveLanguage(hass), {
-    day: "2-digit",
+const resolveTimeZone = (hass) =>
+  hass.locale?.time_zone === "server" ? hass.config?.time_zone : undefined;
+
+const dateFormatter = (language, options) => {
+  const key = JSON.stringify([language, options]);
+  if (!dateFormatters.has(key)) {
+    dateFormatters.set(key, new Intl.DateTimeFormat(language, options));
+  }
+  return dateFormatters.get(key);
+};
+
+const localeSignature = (hass) => [
+  hass.locale?.language,
+  hass.locale?.time_format,
+  hass.locale?.time_zone,
+  hass.config?.time_zone,
+];
+
+const formatDateShort = (hass, isoDate) => {
+  if (!isoDate) return "";
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return dateFormatter(hass.locale?.language, {
+    day: "numeric",
     month: "short",
-    hour: "2-digit",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+};
+
+const formatShortDateTime = (hass, isoDateTime) => {
+  if (!isoDateTime) return "";
+  const amPm = usesAmPm(hass.locale);
+  return dateFormatter(hass.locale?.language, {
+    month: "short",
+    day: "numeric",
+    hour: amPm ? "numeric" : "2-digit",
     minute: "2-digit",
+    hourCycle: amPm ? "h12" : "h23",
+    timeZone: resolveTimeZone(hass),
   }).format(new Date(isoDateTime));
 };
 
@@ -178,6 +211,7 @@ class CorreiosCard extends HTMLElement {
     const signature = JSON.stringify([
       this._config,
       language,
+      localeSignature(this._hass),
       [...this._expanded],
       packages.map((parcel) => [
         parcel.entityId,
@@ -261,7 +295,7 @@ class CorreiosCard extends HTMLElement {
     if (parcel.sent) {
       badges.push(`<span class="badge">${escapeHtml(localize(hass, "card.sent"))}</span>`);
     }
-    const facts = [parcel.location, formatDateTime(hass, parcel.lastEventAt)].filter(Boolean);
+    const facts = [parcel.location, formatShortDateTime(hass, parcel.lastEventAt)].filter(Boolean);
     if (parcel.customName) facts.unshift(parcel.trackingCode);
 
     return `
@@ -280,7 +314,7 @@ class CorreiosCard extends HTMLElement {
             parcel.expectedDelivery && !parcel.delivered
               ? `<div class="expected">
                   <span class="expected-label">${escapeHtml(localize(hass, "card.expected"))}</span>
-                  <span class="expected-date">${escapeHtml(formatDate(hass, parcel.expectedDelivery))}</span>
+                  <span class="expected-date">${escapeHtml(formatDateShort(hass, parcel.expectedDelivery))}</span>
                 </div>`
               : ""
           }
@@ -314,7 +348,7 @@ class CorreiosCard extends HTMLElement {
                   <div class="event-description">${escapeHtml(event.description ?? "")}</div>
                   ${event.detail ? `<div class="event-detail">${escapeHtml(event.detail)}</div>` : ""}
                   <div class="event-facts">${escapeHtml(
-                    [formatDateTime(hass, event.occurred_at), route].filter(Boolean).join(" · "),
+                    [formatShortDateTime(hass, event.occurred_at), route].filter(Boolean).join(" · "),
                   )}</div>
                 </li>`;
             })
