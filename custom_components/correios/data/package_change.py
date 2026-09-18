@@ -1,4 +1,4 @@
-"""A change detected on a package between two consecutive refreshes."""
+"""Uma mudança detectada em um pacote entre duas atualizações consecutivas."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CorreiosPackageChange:
-    """A package together with what changed about it."""
+    """Um pacote junto com o que mudou nele."""
 
     change_type: CorreiosPackageChangeType
     package: CorreiosPackage

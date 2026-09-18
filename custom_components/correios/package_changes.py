@@ -1,4 +1,4 @@
-"""Detect what changed on the tracked packages between two refreshes."""
+"""Detecta o que mudou nos pacotes rastreados entre duas atualizações."""
 
 from __future__ import annotations
 
@@ -15,11 +15,11 @@ def detect_package_changes(
     current: CorreiosPackages,
 ) -> tuple[CorreiosPackageChange, ...]:
     """
-    Return the changes worth announcing, in the order the packages are listed.
+    Retorna as mudanças que vale anunciar, na ordem em que os pacotes são listados.
 
-    Nothing is reported without a previous snapshot: on the first refresh every
-    package would look new, and announcing the whole history on each restart is
-    noise rather than news.
+    Nada é reportado sem um snapshot anterior: na primeira atualização todo
+    pacote pareceria novo, e anunciar o histórico inteiro a cada reinicialização
+    é ruído, não notícia.
     """
     if previous is None:
         return ()

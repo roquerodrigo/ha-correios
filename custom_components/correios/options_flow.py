@@ -1,4 +1,4 @@
-"""Options flow for correios."""
+"""Options flow dos correios."""
 
 from __future__ import annotations
 
@@ -22,13 +22,13 @@ if TYPE_CHECKING:
 
 
 class CorreiosOptionsFlow(OptionsFlow):
-    """Options flow for Correios."""
+    """Options flow dos Correios."""
 
     async def async_step_init(
         self,
         user_input: CorreiosOptionsData | None = None,
     ) -> ConfigFlowResult:
-        """Manage the options."""
+        """Gerencia as opções."""
         if user_input is not None:
             return self.async_create_entry(title="", data=dict(user_input))
 

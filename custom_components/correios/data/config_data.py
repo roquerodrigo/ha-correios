@@ -1,4 +1,4 @@
-"""Typed shape of the credentials persisted on the config entry."""
+"""Estrutura tipada das credenciais persistidas na config entry."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import TypedDict
 
 
 class CorreiosConfigData(TypedDict):
-    """Shape of the credentials persisted on the config entry."""
+    """Estrutura das credenciais persistidas na config entry."""
 
     username: str
     password: str

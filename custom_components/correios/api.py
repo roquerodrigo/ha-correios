@@ -1,4 +1,4 @@
-"""Correios API Client."""
+"""Cliente da API dos Correios."""
 
 from __future__ import annotations
 
@@ -45,18 +45,18 @@ _LOGIN_CAPTCHA_ENABLED = re.compile(r'id="recaptchaEnabled"\s+value="true"')
 
 def _sanitized_error_text(exception: BaseException) -> str:
     """
-    Strip URL query strings from upstream error text before it reaches the log.
+    Remove as query strings de URL do texto de erro antes que ele chegue ao log.
 
-    The single sign-on hands the session over through a one-time ticket in the
-    query string, and HTTP client libraries quote the request URL in their
-    exception messages, which Home Assistant writes to the log on every failed
-    refresh.
+    O login único entrega a sessão por meio de um ticket de uso único na query
+    string, e as bibliotecas de cliente HTTP citam a URL da requisição nas
+    mensagens de exceção, que o Home Assistant grava no log a cada atualização
+    que falha.
     """
     return _URL_QUERY_STRING.sub("?<redacted>", str(exception))
 
 
 class CorreiosApiClient:
-    """Client for the package tracking area of the Correios website."""
+    """Cliente da área de rastreamento de pacotes do site dos Correios."""
 
     def __init__(
         self,
@@ -65,29 +65,29 @@ class CorreiosApiClient:
         session: aiohttp.ClientSession,
     ) -> None:
         """
-        Initialize.
+        Inicializa.
 
-        The website authenticates through cookies, so ``session`` must own its
-        cookie jar instead of sharing the Home Assistant one.
+        O site autentica por cookies, então ``session`` precisa ter o seu
+        próprio cookie jar em vez de compartilhar o do Home Assistant.
         """
         self._username = username
         self._password = password
         self._session = session
 
     async def async_authenticate(self) -> None:
-        """Log in and prove the website accepted the session."""
+        """Faz login e comprova que o site aceitou a sessão."""
         await self._async_log_in()
         if not await self._async_is_logged_in():
             msg = "Failed to log in: the website did not open a session"
             raise CorreiosApiClientError(msg)
 
     async def async_get_packages(self) -> CorreiosPackages:
-        """Return every package tied to the account, keyed by tracking code."""
+        """Retorna todos os pacotes vinculados à conta, por código de rastreamento."""
         payload = await self._async_fetch_packages()
         if not isinstance(payload, Mapping):
-            # The listing answers an anonymous request with an empty list
-            # instead of an error, so an expired session looks like "no
-            # packages" until the session status says otherwise.
+            # A listagem responde a uma requisição anônima com uma lista vazia
+            # em vez de um erro, então uma sessão expirada parece "nenhum
+            # pacote" até que o status da sessão diga o contrário.
             if await self._async_is_logged_in():
                 return {}
             await self.async_authenticate()
@@ -146,7 +146,7 @@ class CorreiosApiClient:
         form: Mapping[str, str] | None = None,
         accepted_statuses: frozenset[int] = frozenset(),
     ) -> CorreiosHttpResponse:
-        """Perform an HTTP request, following redirects, and read the body."""
+        """Executa uma requisição HTTP, seguindo redirecionamentos, e lê o corpo."""
         try:
             async with (
                 asyncio.timeout(REQUEST_TIMEOUT_SECONDS),

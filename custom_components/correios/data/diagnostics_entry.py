@@ -1,4 +1,4 @@
-"""Typed entry section of the diagnostics dump."""
+"""Seção tipada da entry no dump de diagnostics."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class CorreiosDiagnosticsEntry(TypedDict):
-    """Entry section of the diagnostics dump."""
+    """Seção da entry no dump de diagnostics."""
 
     title: str
     version: int

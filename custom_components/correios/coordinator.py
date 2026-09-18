@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for correios."""
+"""DataUpdateCoordinator dos correios."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ FAILURE_GRACE_PERIOD = timedelta(hours=1)
 
 
 class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
-    """Coordinator holding the packages still worth showing, by tracking code."""
+    """Coordinator com os pacotes que ainda vale exibir, por código de rastreamento."""
 
     config_entry: CorreiosConfigEntry
 
@@ -43,7 +43,7 @@ class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
         delivered_retention: timedelta,
         config_entry: CorreiosConfigEntry | None = None,
     ) -> None:
-        """Initialize."""
+        """Inicializa."""
         super().__init__(
             hass=hass,
             logger=LOGGER,
@@ -57,7 +57,7 @@ class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
         self.latest_changes: tuple[CorreiosPackageChange, ...] = ()
 
     async def _async_update_data(self) -> CorreiosPackages:
-        """Fetch the packages, tolerating outages shorter than the grace period."""
+        """Busca os pacotes, tolerando quedas mais curtas que o período de carência."""
         try:
             packages = await self.config_entry.runtime_data.client.async_get_packages()
         except CorreiosApiClientAuthenticationError as exception:
@@ -82,7 +82,7 @@ class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
         return relevant
 
     def _is_relevant(self, package: CorreiosPackage) -> bool:
-        """Keep packages on the way and the ones delivered within the retention."""
+        """Mantém os pacotes a caminho e os entregues dentro da retenção."""
         if not package.delivered:
             return True
         if package.last_event_at is None:
@@ -91,13 +91,14 @@ class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
 
     def _handle_failure(self, exception: CorreiosApiClientError) -> CorreiosPackages:
         """
-        Serve the last known data while the outage is shorter than the grace period.
+        Serve os últimos dados conhecidos enquanto a queda é mais curta que a carência.
 
-        The tracking website has frequent short outages, and a package does not
-        stop existing because one poll failed: marking every entity unavailable
-        would pollute history and break automations for a blip that resolves
-        itself on the next poll. A genuine outage still surfaces once the window
-        closes, and an authentication error never reaches here.
+        O site de rastreamento tem quedas curtas e frequentes, e um pacote não
+        deixa de existir porque uma consulta falhou: marcar todas as entidades
+        como indisponíveis poluiria o histórico e quebraria automações por uma
+        oscilação que se resolve sozinha na consulta seguinte. Uma queda real
+        ainda aparece quando a janela se fecha, e um erro de autenticação nunca
+        chega aqui.
         """
         now = dt_util.utcnow()
         if self._first_failure_at is None:

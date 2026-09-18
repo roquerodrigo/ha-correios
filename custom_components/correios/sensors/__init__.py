@@ -1,4 +1,4 @@
-"""Sensor entities for correios."""
+"""Entidades de sensor dos correios."""
 
 from __future__ import annotations
 

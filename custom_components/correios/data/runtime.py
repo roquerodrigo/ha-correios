@@ -1,4 +1,4 @@
-"""Runtime data stored on entry.runtime_data."""
+"""Dados de runtime guardados em entry.runtime_data."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class CorreiosData:
-    """Data stored on entry.runtime_data for the Correios."""
+    """Dados guardados em entry.runtime_data para os Correios."""
 
     client: CorreiosApiClient
     coordinator: CorreiosDataUpdateCoordinator

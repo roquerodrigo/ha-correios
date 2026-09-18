@@ -1,4 +1,4 @@
-"""An HTTP response already read from the wire."""
+"""Uma resposta HTTP já lida da rede."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CorreiosHttpResponse:
-    """Status, final URL after redirects and decoded body of a response."""
+    """Status, URL final após redirecionamentos e corpo decodificado da resposta."""
 
     status: int
     url: URL

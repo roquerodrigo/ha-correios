@@ -1,5 +1,6 @@
 {
     "name": "Correios",
+    "country": ["BR"],
     "zip_release": true,
     "filename": "correios.zip",
     "homeassistant": "2026.7.2",

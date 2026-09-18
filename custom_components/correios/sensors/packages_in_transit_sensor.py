@@ -1,4 +1,4 @@
-"""Sensor counting the packages on their way to the account holder."""
+"""Sensor que conta os pacotes a caminho do titular da conta."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from ..entity import CorreiosEntity
 
 
 class CorreiosPackagesInTransitSensor(CorreiosEntity, SensorEntity):
-    """Number of packages addressed to the account holder not yet delivered."""
+    """Quantidade de pacotes endereçados ao titular da conta ainda não entregues."""
 
     _attr_translation_key = "packages_in_transit"
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -17,12 +17,12 @@ class CorreiosPackagesInTransitSensor(CorreiosEntity, SensorEntity):
 
     @property
     def unique_id(self) -> str:
-        """Return a unique id derived from the config entry id."""
+        """Retorna um unique id derivado do id da config entry."""
         return f"{self.coordinator.config_entry.entry_id}_{self._attr_translation_key}"
 
     @property
     def tracking_codes(self) -> list[str]:
-        """Return the tracking codes of the packages being counted."""
+        """Retorna os códigos de rastreamento dos pacotes contados."""
         return [
             package.tracking_code
             for package in self.packages.values()
@@ -31,10 +31,10 @@ class CorreiosPackagesInTransitSensor(CorreiosEntity, SensorEntity):
 
     @property
     def native_value(self) -> int:
-        """Return how many packages are on their way."""
+        """Retorna quantos pacotes estão a caminho."""
         return len(self.tracking_codes)
 
     @property
     def extra_state_attributes(self) -> dict[str, list[str]]:
-        """Expose which packages make up the count."""
+        """Expõe quais pacotes compõem a contagem."""
         return {"tracking_codes": self.tracking_codes}

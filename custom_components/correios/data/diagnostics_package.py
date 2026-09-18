@@ -1,4 +1,4 @@
-"""Typed package section of the diagnostics dump."""
+"""Seção tipada de pacote no dump de diagnostics."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import TypedDict
 
 
 class CorreiosDiagnosticsPackage(TypedDict):
-    """A package as exposed in diagnostics, without identifying fields."""
+    """Um pacote como exposto no diagnostics, sem os campos que o identificam."""
 
     direction: str
     delivered: bool

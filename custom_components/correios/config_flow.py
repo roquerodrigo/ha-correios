@@ -1,4 +1,4 @@
-"""Config flow for correios."""
+"""Config flow dos correios."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 def _credentials_schema(default_username: str | None = None) -> vol.Schema:
-    """Build the username/password schema, optionally pre-filled."""
+    """Monta o schema de usuário/senha, opcionalmente já preenchido."""
     return vol.Schema(
         {
             vol.Required(
@@ -47,7 +47,7 @@ def _credentials_schema(default_username: str | None = None) -> vol.Schema:
 
 
 def _normalized(user_input: CorreiosConfigData) -> CorreiosConfigData:
-    """Drop the whitespace a pasted username tends to carry."""
+    """Remove os espaços que um usuário colado costuma trazer."""
     return {
         "username": user_input["username"].strip(),
         "password": user_input["password"],
@@ -55,7 +55,7 @@ def _normalized(user_input: CorreiosConfigData) -> CorreiosConfigData:
 
 
 def _account_title(username: str) -> str:
-    """Name the entry after the account without spelling out a whole CPF."""
+    """Nomeia a entry de acordo com a conta, sem expor um CPF inteiro."""
     digits = username.replace(".", "").replace("-", "")
     if not digits.isdigit() or len(digits) != CPF_LENGTH:
         return username
@@ -63,7 +63,7 @@ def _account_title(username: str) -> str:
 
 
 class CorreiosFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Correios."""
+    """Config flow dos Correios."""
 
     VERSION = 1
 
@@ -72,17 +72,17 @@ class CorreiosFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: CorreiosConfigEntry,  # noqa: ARG004
     ) -> CorreiosOptionsFlow:
-        """Return the options flow handler."""
+        """Retorna o handler do options flow."""
         return CorreiosOptionsFlow()
 
-    # The narrowed ``CorreiosConfigData`` parameter is intentional
-    # — HA's base class declares ``dict[str, Any] | None`` here, and we trade
-    # strict LSP compliance for stronger typing of our own user_input schema.
+    # O parâmetro estreitado para ``CorreiosConfigData`` é intencional: a
+    # classe base do HA declara ``dict[str, Any] | None`` aqui, e trocamos a
+    # conformidade estrita com o LSP por uma tipagem mais forte do user_input.
     async def async_step_user(  # type: ignore[override]
         self,
         user_input: CorreiosConfigData | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Handle the initial step."""
+        """Trata o passo inicial."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -108,14 +108,14 @@ class CorreiosFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         entry_data: Mapping[str, str],  # noqa: ARG002
     ) -> config_entries.ConfigFlowResult:
-        """Trigger reauth when the API rejects stored credentials."""
+        """Dispara o reauth quando a API rejeita as credenciais armazenadas."""
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
         self,
         user_input: CorreiosConfigData | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Prompt the user for new credentials and update the entry."""
+        """Solicita novas credenciais ao usuário e atualiza a entry."""
         errors: dict[str, str] = {}
         entry = self._get_reauth_entry()
         existing = cast("CorreiosConfigData", entry.data)
@@ -143,7 +143,7 @@ class CorreiosFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: CorreiosConfigData | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Allow editing credentials of an existing entry."""
+        """Permite editar as credenciais de uma entry existente."""
         errors: dict[str, str] = {}
         entry = self._get_reconfigure_entry()
         existing = cast("CorreiosConfigData", entry.data)
@@ -171,7 +171,7 @@ class CorreiosFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: CorreiosConfigData,
     ) -> dict[str, str]:
-        """Test credentials and return an errors dict (empty on success)."""
+        """Testa as credenciais e retorna um dict de erros (vazio no sucesso)."""
         try:
             await self._test_credentials(
                 username=user_input["username"],
@@ -189,7 +189,7 @@ class CorreiosFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return {}
 
     async def _test_credentials(self, username: str, password: str) -> None:
-        """Validate credentials against the API."""
+        """Valida as credenciais contra a API."""
         client = CorreiosApiClient(
             username=username,
             password=password,

@@ -114,9 +114,6 @@ async def test_step_user_generic_error_shows_unknown(hass, enable_custom_integra
     assert result["errors"]["base"] == "unknown"
 
 
-# --- Reauth ----------------------------------------------------------------
-
-
 def _existing_entry(hass) -> MockConfigEntry:
     entry = MockConfigEntry(domain=DOMAIN, data=USER_INPUT, unique_id="user")
     entry.add_to_hass(hass)
@@ -170,9 +167,6 @@ async def test_reauth_auth_error_shows_auth(hass, enable_custom_integrations):
         )
     assert result["type"] == FlowResultType.FORM
     assert result["errors"]["base"] == "auth"
-
-
-# --- Reconfigure -----------------------------------------------------------
 
 
 async def test_reconfigure_shows_form(hass, enable_custom_integrations):

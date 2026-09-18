@@ -1,4 +1,4 @@
-"""Correios integration for Home Assistant."""
+"""Integração dos Correios para o Home Assistant."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     entry: CorreiosConfigEntry,
 ) -> bool:
-    """Set up Correios from a config entry."""
+    """Configura os Correios a partir de uma config entry."""
     config = cast("CorreiosConfigData", entry.data)
     scan_interval_seconds: int = int(
         entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL_SECONDS),
@@ -75,7 +75,7 @@ async def async_unload_entry(
     hass: HomeAssistant,
     entry: CorreiosConfigEntry,
 ) -> bool:
-    """Handle removal of an entry."""
+    """Trata a remoção de uma entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
@@ -83,7 +83,7 @@ async def async_remove_entry(
     hass: HomeAssistant,
     entry: CorreiosConfigEntry,
 ) -> None:
-    """Clean up the card registration when the last entry is removed."""
+    """Desfaz o registro do card quando a última entry é removida."""
     if hass.config_entries.async_entries(DOMAIN):
         return
     integration = async_get_loaded_integration(hass, entry.domain)
@@ -94,20 +94,20 @@ async def async_reload_entry(
     hass: HomeAssistant,
     entry: CorreiosConfigEntry,
 ) -> None:
-    """Reload config entry."""
+    """Recarrega a config entry."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_remove_config_entry_device(
-    hass: HomeAssistant,  # noqa: ARG001 -- part of the signature Home Assistant calls
+    hass: HomeAssistant,  # noqa: ARG001 -- faz parte da assinatura que o Home Assistant chama
     entry: CorreiosConfigEntry,
     device_entry: DeviceEntry,
 ) -> bool:
     """
-    Allow deleting devices this entry no longer provides.
+    Permite excluir dispositivos que esta entry não fornece mais.
 
-    Home Assistant hides the "delete device" button unless the integration
-    implements this hook. The account device is refused because the next
-    refresh would recreate it; anything else left behind is allowed to go.
+    O Home Assistant esconde o botão "excluir dispositivo" a menos que a
+    integração implemente este hook. O dispositivo da conta é recusado porque a
+    próxima atualização o recriaria; qualquer outra sobra pode ser excluída.
     """
     return (DOMAIN, entry.entry_id) not in device_entry.identifiers

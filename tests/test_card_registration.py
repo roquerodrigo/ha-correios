@@ -1,4 +1,4 @@
-"""Tests for the bundled Lovelace card registration."""
+"""Testes do registro do card do Lovelace que acompanha a integração."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ FINGERPRINT = _card_fingerprint()
 
 
 def _card_resource_urls(hass: HomeAssistant) -> list[str]:
-    """Return the registered dashboard resource URLs of the card."""
+    """Retorna as URLs dos recursos de dashboard registrados para o card."""
     resources = hass.data[LOVELACE_DATA].resources
     return [
         item["url"]
@@ -35,13 +35,13 @@ def _card_resource_urls(hass: HomeAssistant) -> list[str]:
 
 
 async def _register(hass: HomeAssistant, version: str) -> None:
-    """Set up http and run the card registration."""
+    """Configura o http e executa o registro do card."""
     assert await async_setup_component(hass, "http", {})
     await CorreiosCardRegistration(hass, version).async_register()
 
 
 async def test_register_creates_dashboard_resource(hass: HomeAssistant) -> None:
-    """Storage mode gets a versioned dashboard resource for the card."""
+    """O modo storage recebe um recurso de dashboard versionado para o card."""
     assert await async_setup_component(hass, "lovelace", {})
     await _register(hass, "1.2.3")
 
@@ -49,7 +49,7 @@ async def test_register_creates_dashboard_resource(hass: HomeAssistant) -> None:
 
 
 async def test_register_updates_stale_resource_version(hass: HomeAssistant) -> None:
-    """An existing resource with an old version is updated in place."""
+    """Um recurso existente com versão antiga é atualizado no lugar."""
     assert await async_setup_component(hass, "lovelace", {})
     await _register(hass, "1.2.3")
     await CorreiosCardRegistration(hass, "1.3.0").async_register()
@@ -58,7 +58,7 @@ async def test_register_updates_stale_resource_version(hass: HomeAssistant) -> N
 
 
 async def test_register_twice_keeps_single_resource(hass: HomeAssistant) -> None:
-    """Registering the same version twice does not duplicate the resource."""
+    """Registrar a mesma versão duas vezes não duplica o recurso."""
     assert await async_setup_component(hass, "lovelace", {})
     await _register(hass, "1.2.3")
     await CorreiosCardRegistration(hass, "1.2.3").async_register()
@@ -67,7 +67,7 @@ async def test_register_twice_keeps_single_resource(hass: HomeAssistant) -> None
 
 
 async def test_register_keeps_unrelated_resources(hass: HomeAssistant) -> None:
-    """Resources of other cards are left untouched."""
+    """Os recursos de outros cards permanecem intactos."""
     assert await async_setup_component(hass, "lovelace", {})
     resources = hass.data[LOVELACE_DATA].resources
     await resources.async_load()
@@ -82,7 +82,7 @@ async def test_register_keeps_unrelated_resources(hass: HomeAssistant) -> None:
 
 
 async def test_yaml_mode_falls_back_to_extra_module(hass: HomeAssistant) -> None:
-    """YAML-mode resources fall back to add_extra_js_url."""
+    """Recursos em modo YAML recorrem ao add_extra_js_url."""
     hass.data.setdefault(DATA_EXTRA_MODULE_URL, UrlManager(lambda *_: None, []))
     assert await async_setup_component(hass, "lovelace", {"lovelace": {"mode": "yaml"}})
 
@@ -96,7 +96,7 @@ async def test_yaml_mode_falls_back_to_extra_module(hass: HomeAssistant) -> None
 async def test_missing_lovelace_data_falls_back_to_extra_module(
     hass: HomeAssistant,
 ) -> None:
-    """Without lovelace data the card is registered as an extra module."""
+    """Sem os dados do lovelace, o card é registrado como módulo extra."""
     hass.data.setdefault(DATA_EXTRA_MODULE_URL, UrlManager(lambda *_: None, []))
 
     await _register(hass, "1.2.3")
@@ -106,7 +106,7 @@ async def test_missing_lovelace_data_falls_back_to_extra_module(
 
 
 async def test_remove_deletes_dashboard_resource(hass: HomeAssistant) -> None:
-    """Removing the registration drops the dashboard resource."""
+    """Remover o registro exclui o recurso de dashboard."""
     assert await async_setup_component(hass, "lovelace", {})
     await _register(hass, "1.2.3")
 
@@ -116,12 +116,12 @@ async def test_remove_deletes_dashboard_resource(hass: HomeAssistant) -> None:
 
 
 async def test_remove_without_lovelace_data_is_noop(hass: HomeAssistant) -> None:
-    """Removing with no lovelace data does nothing."""
+    """Remover sem os dados do lovelace não faz nada."""
     await CorreiosCardRegistration(hass, "1.2.3").async_remove()
 
 
 async def test_remove_loads_resources_before_deleting(hass: HomeAssistant) -> None:
-    """Removing right after startup loads the resource collection first."""
+    """Remover logo após a inicialização carrega antes a coleção de recursos."""
     assert await async_setup_component(hass, "lovelace", {})
 
     await CorreiosCardRegistration(hass, "1.2.3").async_remove()
@@ -133,7 +133,7 @@ async def test_remove_entry_drops_resource_for_last_entry(
     hass: HomeAssistant,
     enable_custom_integrations: None,
 ) -> None:
-    """Removing the last config entry deletes the dashboard resource."""
+    """Remover a última config entry exclui o recurso de dashboard."""
     assert await async_setup_component(hass, "lovelace", {})
     await _register(hass, "1.2.3")
     await async_get_integration(hass, DOMAIN)
@@ -147,7 +147,7 @@ async def test_remove_entry_drops_resource_for_last_entry(
 async def test_remove_entry_keeps_resource_while_entries_remain(
     hass: HomeAssistant,
 ) -> None:
-    """The resource stays while another config entry still exists."""
+    """O recurso permanece enquanto existir outra config entry."""
     assert await async_setup_component(hass, "lovelace", {})
     await _register(hass, "1.2.3")
     remaining_entry = MockConfigEntry(domain=DOMAIN, data={})
@@ -162,7 +162,7 @@ async def test_remove_entry_keeps_resource_while_entries_remain(
 async def test_fingerprint_follows_the_card_content(
     hass: HomeAssistant, tmp_path, monkeypatch
 ) -> None:
-    """Editing the card changes the cache-buster without a version bump."""
+    """Editar o card muda o cache-buster sem incremento de versão."""
     from custom_components.correios import card_registration
 
     edited_card = tmp_path / "correios-card.js"

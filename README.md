@@ -9,106 +9,109 @@
 
 ---
 
-[Home Assistant](https://www.home-assistant.io/) integration that tracks the
-[Correios](https://rastreamento.correios.com.br/app/index.php) packages tied to
-your CPF or CNPJ. There are no tracking codes to type: the integration signs in
-to the Correios tracking website with your account and follows every package the
-website lists for you — the ones addressed to you and the ones you sent.
+Integração para o [Home Assistant](https://www.home-assistant.io/) que rastreia
+os pacotes dos [Correios](https://rastreamento.correios.com.br/app/index.php)
+vinculados ao seu CPF ou CNPJ. Não há códigos de rastreamento para digitar: a
+integração entra no site de rastreamento dos Correios com a sua conta e acompanha
+todos os pacotes que o site lista para você — os endereçados a você e os que
+você enviou.
 
-## Requirements
+## Requisitos
 
-- A Correios account (the same username and password used on the Correios
-  website and app). The username can be a CPF, a CNPJ or an idCorreios.
-- Home Assistant 2026.7.2 or newer.
+- Uma conta dos Correios (o mesmo usuário e a mesma senha usados no site e no
+  aplicativo dos Correios). O usuário pode ser um CPF, um CNPJ ou um idCorreios.
+- Home Assistant 2026.7.2 ou mais recente.
 
-## Installation
+## Instalação
 
-### HACS (recommended)
+### HACS (recomendado)
 
-1. Open the repository inside HACS with the button above, or add
-   `https://github.com/roquerodrigo/ha-correios` as a custom repository of type
-   **Integration**.
-2. Install **Correios** and restart Home Assistant.
+1. Abra o repositório no HACS pelo botão acima, ou adicione
+   `https://github.com/roquerodrigo/ha-correios` como repositório personalizado
+   do tipo **Integração**.
+2. Instale **Correios** e reinicie o Home Assistant.
 
 ### Manual
 
-Copy `custom_components/correios/` into the `custom_components/` directory of
-your Home Assistant configuration and restart Home Assistant.
+Copie `custom_components/correios/` para o diretório `custom_components/` da
+configuração do seu Home Assistant e reinicie o Home Assistant.
 
-## Configuration
+## Configuração
 
-Go to **Settings → Devices & services → Add integration → Correios** and enter
-your username and password. Each account becomes one service device, named
-after the account (a CPF is masked, e.g. `***.456.789-**`).
+Acesse **Configurações → Dispositivos e serviços → Adicionar integração →
+Correios** e informe o seu usuário e a sua senha. Cada conta vira um dispositivo
+de serviço, nomeado de acordo com a conta (um CPF é mascarado, por exemplo
+`***.456.789-**`).
 
-Options (**Configure** on the integration entry):
+Opções (**Configurar** na entrada da integração):
 
-| Option | Default | Description |
+| Opção | Padrão | Descrição |
 | --- | --- | --- |
-| Polling interval | 900 s | How often the package list is refreshed (minimum 300 s). |
-| Keep delivered packages for | 7 days | How long a delivered package keeps its sensor. `0` drops it as soon as it is delivered. |
+| Intervalo de consulta | 900 s | Frequência com que a lista de pacotes é atualizada (mínimo de 300 s). |
+| Manter pacotes entregues por | 7 dias | Por quanto tempo um pacote entregue mantém o seu sensor. `0` o remove assim que é entregue. |
 
-If the password changes, Home Assistant asks for the new one through the
-re-authentication flow; the credentials can also be edited with **Reconfigure**.
+Se a senha mudar, o Home Assistant solicita a nova pelo fluxo de
+reautenticação; as credenciais também podem ser editadas em **Reconfigurar**.
 
-## Entities
+## Entidades
 
-| Entity | Description |
+| Entidade | Descrição |
 | --- | --- |
-| `sensor.correios_<account>_packages_in_transit` | Number of packages on their way to you. Attribute `tracking_codes` lists them. |
-| `sensor.correios_<account>_sent_packages_in_transit` | Number of packages you sent that were not delivered yet. Attribute `tracking_codes` lists them. |
-| `sensor.correios_<account>_next_delivery` | Closest expected delivery date among the packages on their way to you. Attribute `tracking_code` tells which package it is. |
-| `sensor.correios_<account>_package_<tracking code>` | One per tracked package. The state is the latest tracking status as reported by Correios. |
-| `event.correios_<account>_package_update` | Fires `new_package`, `status_changed` or `delivered` whenever a refresh detects a change. |
+| `sensor.correios_<account>_packages_in_transit` | Quantidade de pacotes a caminho de você. O atributo `tracking_codes` os lista. |
+| `sensor.correios_<account>_sent_packages_in_transit` | Quantidade de pacotes enviados por você que ainda não foram entregues. O atributo `tracking_codes` os lista. |
+| `sensor.correios_<account>_next_delivery` | Previsão de entrega mais próxima entre os pacotes a caminho de você. O atributo `tracking_code` indica qual é o pacote. |
+| `sensor.correios_<account>_package_<tracking code>` | Um por pacote rastreado. O estado é o status de rastreamento mais recente informado pelos Correios. |
+| `event.correios_<account>_package_update` | Dispara `new_package`, `status_changed` ou `delivered` sempre que uma atualização detecta uma mudança. |
 
-Package sensors are created and removed automatically: a package gets a sensor
-when the website starts listing it and loses it once it has been delivered for
-longer than the configured retention.
+Os sensores de pacote são criados e removidos automaticamente: um pacote ganha
+um sensor quando o site passa a listá-lo e o perde depois de estar entregue por
+mais tempo do que a retenção configurada.
 
-### Package sensor attributes
+### Atributos do sensor de pacote
 
 `tracking_code`, `direction` (`received` / `sent`), `delivered`, `delayed`,
-`detail`, `location`, `category`, `expected_delivery`, `last_event_at` and
-`events` — the full history, newest first, each entry with `description`,
-`detail`, `occurred_at`, `location` and `destination`. The `events` attribute is
-not written to the recorder.
+`detail`, `location`, `category`, `expected_delivery`, `last_event_at` e
+`events` — o histórico completo, do mais recente para o mais antigo, cada
+entrada com `description`, `detail`, `occurred_at`, `location` e `destination`.
+O atributo `events` não é gravado no recorder.
 
-## Dashboard card
+## Card de dashboard
 
-The integration ships a companion card and registers it as a dashboard resource
-on setup — there is nothing to install. Add it from the card picker
-(**Correios**) or in YAML:
+A integração traz um card complementar e o registra como recurso de dashboard
+durante o setup — não há nada para instalar. Adicione-o pelo seletor de cards
+(**Correios**) ou em YAML:
 
 ```yaml
 type: custom:correios-card
-title: Packages
+title: Pacotes
 show_delivered: true
 show_sent: true
 show_history: true
 max_events: 10
 ```
 
-The card finds the package sensors by itself, lists packages in transit first,
-and expands a package into its tracking history on tap. A package sensor renamed
-in Home Assistant (e.g. "Mechanical keyboard") is shown by that name, with the
-tracking code underneath.
+O card encontra sozinho os sensores de pacote, lista primeiro os pacotes em
+trânsito e expande um pacote no seu histórico de rastreamento ao toque. Um
+sensor de pacote renomeado no Home Assistant (por exemplo, "Teclado mecânico") é
+exibido com esse nome, com o código de rastreamento logo abaixo.
 
-| Option | Default | Description |
+| Opção | Padrão | Descrição |
 | --- | --- | --- |
-| `title` | `Correios` | Card title. |
-| `show_delivered` | `true` | List delivered packages still being tracked. |
-| `show_sent` | `true` | List packages sent by the account holder. |
-| `show_history` | `true` | Expand the tracking history on tap. When `false`, a tap opens the more-info dialog. |
-| `max_events` | `10` | Maximum number of events shown in the history. |
+| `title` | `Correios` | Título do card. |
+| `show_delivered` | `true` | Lista os pacotes entregues que ainda são rastreados. |
+| `show_sent` | `true` | Lista os pacotes enviados pelo titular da conta. |
+| `show_history` | `true` | Expande o histórico de rastreamento ao toque. Quando `false`, o toque abre o diálogo de mais informações. |
+| `max_events` | `10` | Quantidade máxima de eventos exibidos no histórico. |
 
-On dashboards managed in YAML mode the resource cannot be registered
-automatically; the card is loaded as an extra frontend module instead.
+Em dashboards gerenciados em modo YAML, o recurso não pode ser registrado
+automaticamente; nesse caso, o card é carregado como um módulo extra do
+frontend.
 
-### Notification example
+### Exemplo de notificação
 
 ```yaml
 automation:
-  - alias: Correios - package update
+  - alias: Correios - atualização de pacote
     triggers:
       - trigger: state
         entity_id: event.correios_456_789_package_update
@@ -122,30 +125,31 @@ automation:
             ({{ trigger.to_state.attributes.location }})
 ```
 
-## Notes
+## Observações
 
-- Statuses, details and locations are shown exactly as Correios reports them,
-  in Portuguese.
-- The Correios website has frequent short outages. A failed refresh keeps the
-  last known data for up to one hour before the entities become unavailable.
-- This project is not affiliated with Correios. It relies on the public
-  tracking website, which can change without notice.
+- Status, detalhes e locais são exibidos exatamente como os Correios os
+  informam.
+- O site dos Correios tem indisponibilidades curtas e frequentes. Uma
+  atualização que falha mantém os últimos dados conhecidos por até uma hora
+  antes de as entidades ficarem indisponíveis.
+- Este projeto não tem vínculo com os Correios. Ele depende do site público de
+  rastreamento, que pode mudar sem aviso.
 
-## Development
+## Desenvolvimento
 
 ```bash
-scripts/setup     # create .venv with uv and install the dev + lint groups
-scripts/lint      # ruff format --check, ruff check, mypy, pytest, node --check on the card
-scripts/develop   # run Home Assistant with the integration loaded
+scripts/setup     # cria o .venv com uv e instala os grupos dev + lint
+scripts/lint      # ruff format --check, ruff check, mypy, pytest, node --check no card
+scripts/develop   # executa o Home Assistant com a integração carregada
 ```
 
-Conventions for contributors live in [`CODE_STYLE.md`](./CODE_STYLE.md) and
+As convenções para quem contribui estão em [`CODE_STYLE.md`](./CODE_STYLE.md) e
 [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
-## Support
+## Apoio
 
-This integration is built and maintained on personal time. If it is useful to you, consider [sponsoring the work](https://github.com/sponsors/roquerodrigo) — it keeps the development, the testing and the releases coming.
+Esta integração é desenvolvida e mantida em tempo pessoal. Se ela for útil para você, considere [apoiar o trabalho](https://github.com/sponsors/roquerodrigo) — isso mantém o desenvolvimento, os testes e os releases em andamento.
 
-## License
+## Licença
 
 [MIT](LICENSE)

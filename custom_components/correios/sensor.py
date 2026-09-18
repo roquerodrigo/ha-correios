@@ -1,4 +1,4 @@
-"""Sensor platform for correios."""
+"""Plataforma sensor dos correios."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ async def async_setup_entry(
     entry: CorreiosConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the account sensors and keep one sensor per tracked package."""
+    """Configura os sensores da conta e mantém um sensor por pacote rastreado."""
     coordinator = entry.runtime_data.coordinator
     async_add_entities(
         [
