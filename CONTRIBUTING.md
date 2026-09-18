@@ -1,55 +1,59 @@
-# Contribution guidelines
+# Diretrizes de contribuição
 
-Contributing to this project should be as easy and transparent as possible, whether it's:
+Contribuir com este projeto deve ser o mais fácil e transparente possível, seja para:
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
+- Reportar um bug
+- Discutir o estado atual do código
+- Enviar uma correção
+- Propor novas funcionalidades
 
-## Github is used for everything
+## O GitHub é usado para tudo
 
-Github is used to host code, to track issues and feature requests, as well as accept pull requests.
+O GitHub é usado para hospedar o código, acompanhar issues e pedidos de funcionalidade e receber pull requests.
 
-Pull requests are the best way to propose changes to the codebase.
+Pull requests são a melhor forma de propor mudanças no código.
 
-1. Fork the repo and create your branch from `main`.
-2. If you've changed something, update the documentation.
-3. Make sure your code lints (run `uv run ruff format --check .`, `uv run ruff check .` and `uv run mypy custom_components/correios`).
-4. Test your contribution.
-5. Issue that pull request!
+1. Faça um fork do repositório e crie a sua branch a partir da `main`.
+2. Se você alterou algo, atualize a documentação.
+3. Garanta que o código passa no lint (execute `uv run ruff format --check .`, `uv run ruff check .` e `uv run mypy custom_components/correios`).
+4. Teste a sua contribuição.
+5. Abra o pull request!
 
-## Any contributions you make will be under the MIT Software License
+## Idioma
 
-In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
+O idioma do repositório é o **português do Brasil**: documentação, docstrings, comentários, mensagens de commit, pull requests e issues. O código (identificadores, nomes de arquivo e de branch, mensagens de log, tipo e escopo do Conventional Commit) fica em inglês, e os termos nativos do domínio (CPF, CNPJ, CEP, idCorreios) nunca são traduzidos. A regra completa está na seção "Idioma" do [`CODE_STYLE.md`](./CODE_STYLE.md).
 
-## Report bugs using Github's [issues](../../issues)
+## Toda contribuição fica sob a licença MIT
 
-GitHub issues are used to track public bugs.
-Report a bug by [opening a new issue](../../issues/new/choose); it's that easy!
+Em resumo, ao enviar alterações de código, entende-se que elas ficam sob a mesma [licença MIT](http://choosealicense.com/licenses/mit/) que cobre o projeto. Entre em contato com os mantenedores se isso for uma preocupação.
 
-## Write bug reports with detail, background, and sample code
+## Reporte bugs pelas [issues](../../issues) do GitHub
 
-**Great Bug Reports** tend to have:
+As issues do GitHub são usadas para acompanhar os bugs públicos.
+Reporte um bug [abrindo uma nova issue](../../issues/new/choose); é simples assim!
 
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can.
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+## Escreva relatos de bug com detalhes, contexto e código de exemplo
 
-## Use a Consistent Coding Style
+**Bons relatos de bug** costumam ter:
 
-The project uses [ruff](https://docs.astral.sh/ruff/) (config in `pyproject.toml`). Run `uv run ruff format --check .`, `uv run ruff check .` and `uv run mypy custom_components/correios` before sending a PR.
+- Um resumo rápido e/ou o contexto
+- Passos para reproduzir
+  - Seja específico!
+  - Forneça código de exemplo, se puder.
+- O que você esperava que acontecesse
+- O que acontece de fato
+- Observações (incluindo, se possível, por que você acha que isso acontece ou o que você tentou e não funcionou)
 
-## Test your code modification
+## Use um estilo de código consistente
 
-This template is based on [correios template](https://github.com/ludeeus/correios).
+O projeto usa o [ruff](https://docs.astral.sh/ruff/) (configuração no `pyproject.toml`). Execute `uv run ruff format --check .`, `uv run ruff check .` e `uv run mypy custom_components/correios` antes de enviar um PR.
 
-Run `scripts/setup` once to create the `uv`-managed virtual environment, then `scripts/develop` to start a stand-alone Home Assistant instance in debug mode with the integration loaded and the included [`configuration.yaml`](./config/configuration.yaml) file.
+## Teste a sua alteração
 
-## License
+Este projeto é baseado no template [integration_blueprint](https://github.com/ludeeus/integration_blueprint).
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+Execute `scripts/setup` uma vez para criar o ambiente virtual gerenciado pelo `uv` e, em seguida, `scripts/develop` para iniciar uma instância independente do Home Assistant em modo debug, com a integração carregada e o arquivo [`configuration.yaml`](./config/configuration.yaml) incluído.
+
+## Licença
+
+Ao contribuir, você concorda que as suas contribuições serão licenciadas sob a licença MIT do projeto.

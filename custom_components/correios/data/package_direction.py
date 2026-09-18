@@ -1,4 +1,4 @@
-"""Direction of a package relative to the account holder."""
+"""Direção de um pacote em relação ao titular da conta."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from enum import StrEnum
 
 
 class CorreiosPackageDirection(StrEnum):
-    """Whether the account holder receives or sends the package."""
+    """Indica se o titular da conta recebe ou envia o pacote."""
 
     RECEIVED = "received"
     SENT = "sent"

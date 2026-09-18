@@ -1,4 +1,4 @@
-"""Event platform for correios."""
+"""Plataforma event dos correios."""
 
 from __future__ import annotations
 
@@ -22,30 +22,31 @@ async def async_setup_entry(
     entry: CorreiosConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the event platform."""
+    """Configura a plataforma event."""
     async_add_entities(
         [CorreiosPackageUpdateEvent(coordinator=entry.runtime_data.coordinator)],
     )
 
 
 class CorreiosPackageUpdateEvent(CorreiosEntity, EventEntity):
-    """Fires whenever a package shows up, moves or gets delivered."""
+    """Dispara sempre que um pacote aparece, se movimenta ou é entregue."""
 
     _attr_translation_key = "package_update"
-    _attr_event_types = [change_type.value for change_type in CorreiosPackageChangeType]  # noqa: RUF012 -- Home Assistant declares the attribute as a list
+    _attr_event_types = [change_type.value for change_type in CorreiosPackageChangeType]  # noqa: RUF012 -- o Home Assistant declara o atributo como list
 
     @property
     def unique_id(self) -> str:
-        """Return a unique id derived from the config entry id."""
+        """Retorna um unique id derivado do id da config entry."""
         return f"{self.coordinator.config_entry.entry_id}_package_update"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """
-        Announce every change detected by the latest refresh.
+        Anuncia todas as mudanças detectadas pela última atualização.
 
-        The state is written once per change because an event entity only keeps
-        the last event it was given, and one refresh can move several packages.
+        O estado é gravado uma vez por mudança porque uma entidade de evento só
+        guarda o último evento recebido, e uma atualização pode movimentar
+        vários pacotes.
         """
         changes = self.coordinator.latest_changes
         if not changes:

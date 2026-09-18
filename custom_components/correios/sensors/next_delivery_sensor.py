@@ -1,4 +1,4 @@
-"""Sensor exposing the closest expected delivery date."""
+"""Sensor que expõe a previsão de entrega mais próxima."""
 
 from __future__ import annotations
 
@@ -16,19 +16,19 @@ if TYPE_CHECKING:
 
 
 class CorreiosNextDeliverySensor(CorreiosEntity, SensorEntity):
-    """Earliest expected delivery among the packages on their way."""
+    """Previsão de entrega mais próxima entre os pacotes a caminho."""
 
     _attr_translation_key = "next_delivery"
     _attr_device_class = SensorDeviceClass.DATE
 
     @property
     def unique_id(self) -> str:
-        """Return a unique id derived from the config entry id."""
+        """Retorna um unique id derivado do id da config entry."""
         return f"{self.coordinator.config_entry.entry_id}_next_delivery"
 
     @property
     def next_package(self) -> CorreiosPackage | None:
-        """Return the package expected to arrive first, if any has a date."""
+        """Retorna o pacote previsto para chegar primeiro, se algum tiver data."""
         expected = [
             package
             for package in self.packages.values()
@@ -44,12 +44,12 @@ class CorreiosNextDeliverySensor(CorreiosEntity, SensorEntity):
 
     @property
     def native_value(self) -> date | None:
-        """Return the closest expected delivery date."""
+        """Retorna a previsão de entrega mais próxima."""
         package = self.next_package
         return package.expected_delivery if package is not None else None
 
     @property
     def extra_state_attributes(self) -> dict[str, str | None]:
-        """Expose which package the date belongs to."""
+        """Expõe a qual pacote a data pertence."""
         package = self.next_package
         return {"tracking_code": package.tracking_code if package else None}

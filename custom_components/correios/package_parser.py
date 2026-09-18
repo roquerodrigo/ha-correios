@@ -1,4 +1,4 @@
-"""Translate the raw Correios tracking payload into domain packages."""
+"""Converte o payload cru de rastreamento dos Correios em pacotes do domínio."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ _DELIVERY_STATE_KEYS: tuple[tuple[str, bool], ...] = (
 
 
 def parse_packages(payload: JsonObject) -> CorreiosPackages:
-    """Build every package of the payload, keyed by tracking code."""
+    """Monta todos os pacotes do payload, por código de rastreamento."""
     packages: CorreiosPackages = {}
     for direction_key, direction in _DIRECTION_KEYS:
         groups = _mapping(payload.get(direction_key))
@@ -73,7 +73,7 @@ def _parse_package(
 
 
 def _tracking_code(displayed_code: str) -> str:
-    """Undo the digit grouping the website applies for display."""
+    """Desfaz o agrupamento de dígitos que o site aplica para exibição."""
     return "".join(displayed_code.split()).upper()
 
 
@@ -99,7 +99,7 @@ def _location(city: str, state: str) -> str:
 
 def _parse_expected_delivery(value: str) -> date | None:
     try:
-        return datetime.strptime(value.strip(), "%d/%m/%Y").date()  # noqa: DTZ007 -- a calendar date carries no time zone
+        return datetime.strptime(value.strip(), "%d/%m/%Y").date()  # noqa: DTZ007 -- uma data de calendário não tem fuso horário
     except ValueError:
         return None
 

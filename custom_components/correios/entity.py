@@ -1,4 +1,4 @@
-"""CorreiosEntity base class."""
+"""Classe base CorreiosEntity."""
 
 from __future__ import annotations
 
@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 
 
 class CorreiosEntity(CoordinatorEntity[CorreiosDataUpdateCoordinator]):
-    """Base entity for Correios."""
+    """Entidade base dos Correios."""
 
     _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device info for the account the config entry represents."""
+        """Retorna o device info da conta que a config entry representa."""
         return DeviceInfo(
             identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
             name=f"Correios {self.coordinator.config_entry.title}",
@@ -33,6 +33,6 @@ class CorreiosEntity(CoordinatorEntity[CorreiosDataUpdateCoordinator]):
 
     @property
     def packages(self) -> CorreiosPackages:
-        """Return the tracked packages, empty before the first refresh."""
+        """Retorna os pacotes rastreados, vazio antes da primeira atualização."""
         data: CorreiosPackages | None = self.coordinator.data
         return data if data is not None else {}

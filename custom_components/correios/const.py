@@ -1,4 +1,4 @@
-"""Constants for correios."""
+"""Constantes dos correios."""
 
 from __future__ import annotations
 

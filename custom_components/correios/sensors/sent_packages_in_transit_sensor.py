@@ -1,4 +1,4 @@
-"""Sensor counting the packages the account holder sent."""
+"""Sensor que conta os pacotes enviados pelo titular da conta."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from .packages_in_transit_sensor import CorreiosPackagesInTransitSensor
 
 
 class CorreiosSentPackagesInTransitSensor(CorreiosPackagesInTransitSensor):
-    """Number of packages sent by the account holder not yet delivered."""
+    """Quantidade de pacotes enviados pelo titular da conta ainda não entregues."""
 
     _attr_translation_key = "sent_packages_in_transit"
     _direction = CorreiosPackageDirection.SENT

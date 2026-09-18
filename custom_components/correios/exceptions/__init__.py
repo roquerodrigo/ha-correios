@@ -1,4 +1,4 @@
-"""Exception classes for the correios API client."""
+"""Classes de exceção do cliente da API dos correios."""
 
 from __future__ import annotations
 

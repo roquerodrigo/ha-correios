@@ -1,4 +1,4 @@
-"""Custom types for correios."""
+"""Tipos próprios dos correios."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""A single tracking event in the history of a package."""
+"""Um único evento de rastreamento no histórico de um pacote."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CorreiosPackageEvent:
-    """One step of the route a package went through."""
+    """Uma etapa do trajeto percorrido por um pacote."""
 
     code: str
     description: str

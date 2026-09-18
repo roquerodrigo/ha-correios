@@ -1,4 +1,4 @@
-"""Registration of the bundled Lovelace card with the frontend."""
+"""Registro, no frontend, do card do Lovelace que acompanha a integração."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ _FINGERPRINT_LENGTH = 8
 
 
 class CorreiosDashboardResource(TypedDict):
-    """Dashboard resource entry as stored by the Lovelace resource collection."""
+    """Recurso de dashboard como a coleção de recursos do Lovelace o armazena."""
 
     id: str
     url: str
@@ -33,25 +33,26 @@ class CorreiosDashboardResource(TypedDict):
 
 class CorreiosCardRegistration:
     """
-    Serve the bundled card and keep it registered on dashboards.
+    Serve o card que acompanha a integração e o mantém registrado nos dashboards.
 
-    The card is registered as a Lovelace dashboard resource instead of an
-    extra frontend module: extra modules are embedded in index.html only for
-    pages served after this integration has started setting up, so a
-    dashboard opened while Home Assistant was still starting rendered a
-    configuration error until a manual reload. Dashboard resources persist
-    in storage and are fetched on every dashboard load, which closes that
-    startup window. add_extra_js_url() remains only as the fallback for
-    YAML-mode resources, which cannot be managed programmatically.
+    O card é registrado como recurso de dashboard do Lovelace, e não como
+    módulo extra do frontend: os módulos extras são embutidos no index.html
+    apenas nas páginas servidas depois que esta integração começou o setup,
+    então um dashboard aberto enquanto o Home Assistant ainda iniciava exibia
+    um erro de configuração até um recarregamento manual. Os recursos de
+    dashboard persistem no storage e são buscados a cada carregamento do
+    dashboard, o que fecha essa janela de inicialização. O add_extra_js_url()
+    permanece apenas como fallback para recursos em modo YAML, que não podem
+    ser gerenciados por código.
     """
 
     def __init__(self, hass: HomeAssistant, version: str) -> None:
-        """Initialize the registration for one card version."""
+        """Inicializa o registro para uma versão do card."""
         self._hass = hass
         self._version = version
 
     async def async_register(self) -> None:
-        """Serve the card files and ensure dashboards can load them."""
+        """Serve os arquivos do card e garante que os dashboards os carreguem."""
         await self._async_register_static_path()
         versioned_url = await self._async_versioned_url()
         if (resources := self._storage_resources()) is None:
@@ -60,7 +61,7 @@ class CorreiosCardRegistration:
             await self._async_ensure_resource(resources, versioned_url)
 
     async def async_remove(self) -> None:
-        """Drop the dashboard resource of the card."""
+        """Remove o recurso de dashboard do card."""
         if (resources := self._storage_resources()) is None:
             return
         if not resources.loaded:
@@ -71,11 +72,11 @@ class CorreiosCardRegistration:
 
     async def _async_versioned_url(self) -> str:
         """
-        Return the card URL with a cache-buster that follows the file content.
+        Retorna a URL do card com um cache-buster que acompanha o conteúdo.
 
-        The card is served with long-lived cache headers, and the integration
-        version alone does not change when the card is edited between releases,
-        which would leave browsers on the stale file.
+        O card é servido com cabeçalhos de cache de longa duração, e a versão
+        da integração sozinha não muda quando o card é editado entre releases,
+        o que deixaria os navegadores com o arquivo antigo.
         """
         fingerprint = await self._hass.async_add_executor_job(_card_fingerprint)
         return f"{_CARD_URL}?v={self._version}-{fingerprint}"

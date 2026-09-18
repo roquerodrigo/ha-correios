@@ -1,4 +1,4 @@
-"""Diagnostics support for correios."""
+"""Suporte a diagnostics dos correios."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ TO_REDACT: frozenset[str] = frozenset({CONF_PASSWORD, CONF_USERNAME})
 
 
 def _package_diagnostics(package: CorreiosPackage) -> CorreiosDiagnosticsPackage:
-    """Describe a package without the tracking code or free-text details."""
+    """Descreve um pacote sem o código de rastreamento nem detalhes em texto livre."""
     return {
         "direction": package.direction.value,
         "delivered": package.delivered,
@@ -47,7 +47,7 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,  # noqa: ARG001
     entry: CorreiosConfigEntry,
 ) -> CorreiosDiagnosticsPayload:
-    """Return diagnostics for a config entry."""
+    """Retorna o diagnostics de uma config entry."""
     redacted_data = cast(
         "Mapping[str, str]",
         async_redact_data(dict(entry.data), set(TO_REDACT)),

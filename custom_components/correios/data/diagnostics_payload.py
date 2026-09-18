@@ -1,4 +1,4 @@
-"""Typed top-level shape returned by async_get_config_entry_diagnostics."""
+"""Estrutura tipada do retorno de async_get_config_entry_diagnostics."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class CorreiosDiagnosticsPayload(TypedDict):
-    """Top-level shape returned by async_get_config_entry_diagnostics."""
+    """Estrutura do retorno de async_get_config_entry_diagnostics."""
 
     entry: CorreiosDiagnosticsEntry
     packages: list[CorreiosDiagnosticsPackage]

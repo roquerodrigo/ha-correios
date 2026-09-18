@@ -1,4 +1,4 @@
-"""A package tracked by the Correios account."""
+"""Um pacote rastreado pela conta dos Correios."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CorreiosPackage:
-    """Latest known situation of a package plus its event history."""
+    """Última situação conhecida de um pacote e o seu histórico de eventos."""
 
     tracking_code: str
     direction: CorreiosPackageDirection
