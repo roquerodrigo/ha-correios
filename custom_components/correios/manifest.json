@@ -1,0 +1,20 @@
+{
+  "domain": "correios",
+  "name": "Correios",
+  "after_dependencies": [
+    "frontend"
+  ],
+  "codeowners": [
+    "@roquerodrigo"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "lovelace"
+  ],
+  "documentation": "https://github.com/roquerodrigo/ha-correios",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/roquerodrigo/ha-correios/issues",
+  "version": "0.1.0"
+}

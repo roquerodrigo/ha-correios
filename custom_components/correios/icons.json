@@ -1,0 +1,23 @@
+{
+    "entity": {
+        "sensor": {
+            "packages_in_transit": {
+                "default": "mdi:truck-delivery"
+            },
+            "sent_packages_in_transit": {
+                "default": "mdi:truck-fast-outline"
+            },
+            "next_delivery": {
+                "default": "mdi:calendar-clock"
+            },
+            "package": {
+                "default": "mdi:package-variant-closed"
+            }
+        },
+        "event": {
+            "package_update": {
+                "default": "mdi:package-variant"
+            }
+        }
+    }
+}

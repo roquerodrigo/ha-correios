@@ -1,0 +1,142 @@
+from __future__ import annotations
+
+from homeassistant.config_entries import ConfigEntryState
+
+
+async def test_setup_entry_loads_successfully(hass, setup_integration):
+    assert setup_integration.state == ConfigEntryState.LOADED
+
+
+async def test_setup_entry_creates_entities(hass, setup_integration):
+    assert len(hass.states.async_all("sensor")) == 7
+    assert len(hass.states.async_all("event")) == 1
+
+
+async def test_setup_entry_uses_a_dedicated_http_session(
+    hass, mock_api_client, enable_custom_integrations
+):
+    from unittest.mock import patch
+
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.correios.const import DOMAIN
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"username": "user", "password": "pass"}, unique_id="user"
+    )
+    entry.add_to_hass(hass)
+    with patch(
+        "custom_components.correios.async_create_clientsession"
+    ) as create_session:
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    create_session.assert_called_once_with(hass)
+
+
+async def test_setup_entry_registers_update_listener(hass, setup_integration):
+    assert len(setup_integration.update_listeners) == 1
+
+
+async def test_unload_entry_succeeds(hass, setup_integration):
+    assert await hass.config_entries.async_unload(setup_integration.entry_id)
+    assert setup_integration.state == ConfigEntryState.NOT_LOADED
+
+
+async def test_unload_entry_makes_entities_unavailable(hass, setup_integration):
+    await hass.config_entries.async_unload(setup_integration.entry_id)
+    await hass.async_block_till_done()
+    for state in hass.states.async_all("sensor"):
+        assert state.state == "unavailable"
+
+
+async def test_reload_entry_restores_loaded_state(
+    hass, setup_integration, mock_api_client
+):
+    await hass.config_entries.async_reload(setup_integration.entry_id)
+    await hass.async_block_till_done()
+    assert setup_integration.state == ConfigEntryState.LOADED
+
+
+async def test_async_reload_entry_calls_reload(
+    hass, setup_integration, mock_api_client
+):
+    from custom_components.correios import async_reload_entry
+
+    await async_reload_entry(hass, setup_integration)
+    await hass.async_block_till_done()
+    assert setup_integration.state == ConfigEntryState.LOADED
+
+
+async def test_runtime_data_populated(hass, setup_integration):
+    assert setup_integration.runtime_data.client is not None
+    assert setup_integration.runtime_data.coordinator is not None
+    assert setup_integration.runtime_data.integration is not None
+
+
+async def test_scan_interval_defaults_to_const(hass, setup_integration):
+    from datetime import timedelta
+
+    from custom_components.correios.const import (
+        DEFAULT_SCAN_INTERVAL_SECONDS,
+    )
+
+    assert setup_integration.runtime_data.coordinator.update_interval == timedelta(
+        seconds=DEFAULT_SCAN_INTERVAL_SECONDS
+    )
+
+
+async def test_scan_interval_picks_up_options(
+    hass, mock_api_client, enable_custom_integrations
+):
+    from homeassistant.const import CONF_SCAN_INTERVAL
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.correios.const import DOMAIN
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"username": "user", "password": "pass"},
+        options={CONF_SCAN_INTERVAL: 600, "delivered_retention_days": 0},
+        unique_id="user",
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    from datetime import timedelta
+
+    assert entry.runtime_data.coordinator.update_interval == timedelta(seconds=600)
+    assert len(hass.states.async_all("sensor")) == 6
+
+
+async def test_remove_device_refuses_the_device_the_entry_provides(
+    hass, setup_integration
+):
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.correios import (
+        async_remove_config_entry_device,
+    )
+    from custom_components.correios.const import DOMAIN
+
+    device = dr.async_get(hass).async_get_device(
+        identifiers={(DOMAIN, setup_integration.entry_id)}
+    )
+    assert device is not None
+    assert not await async_remove_config_entry_device(hass, setup_integration, device)
+
+
+async def test_remove_device_allows_a_device_the_entry_no_longer_provides(
+    hass, setup_integration
+):
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.correios import (
+        async_remove_config_entry_device,
+    )
+    from custom_components.correios.const import DOMAIN
+
+    stale = dr.async_get(hass).async_get_or_create(
+        config_entry_id=setup_integration.entry_id,
+        identifiers={(DOMAIN, "device-that-went-away")},
+    )
+    assert await async_remove_config_entry_device(hass, setup_integration, stale)

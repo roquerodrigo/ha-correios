@@ -1,0 +1,83 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Configurar Correios",
+                "description": "Informe as credenciais que você usa no site dos Correios. Os pacotes vinculados ao CPF ou CNPJ da conta são acompanhados automaticamente.",
+                "data": {
+                    "username": "Usuário (CPF, CNPJ ou idCorreios)",
+                    "password": "Senha"
+                }
+            },
+            "reauth_confirm": {
+                "title": "Reautenticar Correios",
+                "description": "Suas credenciais não são mais válidas. Informe as credenciais atualizadas.",
+                "data": {
+                    "username": "Usuário (CPF, CNPJ ou idCorreios)",
+                    "password": "Senha"
+                }
+            },
+            "reconfigure": {
+                "title": "Reconfigurar Correios",
+                "description": "Atualize as credenciais desta entrada.",
+                "data": {
+                    "username": "Usuário (CPF, CNPJ ou idCorreios)",
+                    "password": "Senha"
+                }
+            }
+        },
+        "error": {
+            "auth": "Usuário ou senha incorretos.",
+            "connection": "Não foi possível conectar ao site dos Correios.",
+            "unknown": "Ocorreu um erro desconhecido."
+        },
+        "abort": {
+            "already_configured": "Esta conta já está configurada.",
+            "reauth_successful": "Reautenticação concluída com sucesso.",
+            "reconfigure_successful": "Reconfiguração concluída com sucesso.",
+            "unique_id_mismatch": "A conta não corresponde à que foi usada para configurar esta entrada."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Opções do Correios",
+                "description": "Ajuste a consulta e por quanto tempo os pacotes entregues continuam visíveis.",
+                "data": {
+                    "scan_interval": "Intervalo de consulta (segundos)",
+                    "delivered_retention_days": "Manter pacotes entregues por (dias)"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "packages_in_transit": {
+                "name": "Pacotes em trânsito"
+            },
+            "sent_packages_in_transit": {
+                "name": "Pacotes enviados em trânsito"
+            },
+            "next_delivery": {
+                "name": "Próxima entrega"
+            },
+            "package": {
+                "name": "Pacote {tracking_code}"
+            }
+        },
+        "event": {
+            "package_update": {
+                "name": "Atualização de pacote",
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "new_package": "Novo pacote",
+                            "status_changed": "Status alterado",
+                            "delivered": "Entregue"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
