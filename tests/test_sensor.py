@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import timedelta
+from datetime import date, timedelta
 from unittest.mock import MagicMock
 
 from homeassistant.helpers import entity_registry as er
@@ -43,7 +43,10 @@ async def test_platform_creates_account_and_package_sensors(hass, setup_integrat
         hass.states.get("sensor.correios_456_789_sent_packages_in_transit").state == "1"
     )
     assert (
-        hass.states.get("sensor.correios_456_789_next_delivery").state == "2026-09-20"
+        hass.states.get("sensor.correios_456_789_next_delivery").state
+        == dt_util.start_of_local_day(date(2026, 9, 20))
+        .astimezone(dt_util.UTC)
+        .isoformat()
     )
     assert len(hass.states.async_all("sensor")) == 3 + 4
 
@@ -162,15 +165,22 @@ def test_count_sensors_are_zero_before_first_refresh():
 
 def test_next_delivery_picks_the_earliest_date(packages):
     sensor = CorreiosNextDeliverySensor(coordinator=_coordinator(packages))
-    assert sensor.native_value.isoformat() == "2026-09-20"
-    assert sensor.extra_state_attributes == {"tracking_code": SECOND_IN_TRANSIT_CODE}
+    assert sensor.native_value == dt_util.start_of_local_day(date(2026, 9, 20))
+    assert sensor.native_value.tzinfo is not None
+    assert sensor.extra_state_attributes == {
+        "tracking_code": SECOND_IN_TRANSIT_CODE,
+        "expected_delivery": "2026-09-20",
+    }
     assert sensor.unique_id == "eid_next_delivery"
 
 
 def test_next_delivery_is_none_without_packages():
     sensor = CorreiosNextDeliverySensor(coordinator=_coordinator({}))
     assert sensor.native_value is None
-    assert sensor.extra_state_attributes == {"tracking_code": None}
+    assert sensor.extra_state_attributes == {
+        "tracking_code": None,
+        "expected_delivery": None,
+    }
 
 
 def test_package_sensor_without_its_package_is_unavailable():

@@ -59,7 +59,7 @@ reautenticação; as credenciais também podem ser editadas em **Reconfigurar**.
 | --- | --- |
 | `sensor.correios_<account>_packages_in_transit` | Quantidade de pacotes a caminho de você. O atributo `tracking_codes` os lista. |
 | `sensor.correios_<account>_sent_packages_in_transit` | Quantidade de pacotes enviados por você que ainda não foram entregues. O atributo `tracking_codes` os lista. |
-| `sensor.correios_<account>_next_delivery` | Previsão de entrega mais próxima entre os pacotes a caminho de você. O atributo `tracking_code` indica qual é o pacote. |
+| `sensor.correios_<account>_next_delivery` | Previsão de entrega mais próxima entre os pacotes a caminho de você, como `timestamp` (início do dia previsto) para que a interface a formate conforme o idioma e as preferências do usuário. O atributo `tracking_code` indica qual é o pacote e `expected_delivery` traz a data em ISO. |
 | `sensor.correios_<account>_package_<tracking code>` | Um por pacote rastreado. O estado é o status de rastreamento mais recente informado pelos Correios. |
 | `event.correios_<account>_package_update` | Dispara `new_package`, `status_changed` ou `delivered` sempre que uma atualização detecta uma mudança. |
 
