@@ -19,7 +19,7 @@ O `hacs.json` declara `"country": ["BR"]`, então o idioma do repositório é o 
 
 ## Fluxo de verificação
 
-**Após cada alteração de código, sempre execute o lint e depois os testes, nessa ordem, antes de declarar a tarefa concluída. Execute `scripts/lint` (um wrapper fino que apenas encadeia os quatro comandos) ou execute-os diretamente:**
+**Após cada alteração de código, sempre execute o lint e depois os testes, nessa ordem, antes de declarar a tarefa concluída. Execute `scripts/lint` (um wrapper fino que apenas encadeia os comandos abaixo) ou execute-os diretamente:**
 
 ```bash
 uv run ruff format --check .
