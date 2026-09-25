@@ -131,7 +131,10 @@ automation:
   informam.
 - O site dos Correios tem indisponibilidades curtas e frequentes. Uma
   atualização que falha mantém os últimos dados conhecidos por até uma hora
-  antes de as entidades ficarem indisponíveis.
+  antes de as entidades ficarem indisponíveis. Da mesma forma, um pacote que
+  some da listagem continua com os últimos dados conhecidos por até uma hora
+  antes de perder o sensor, e a sua volta nesse intervalo não é anunciada como
+  pacote novo.
 - Este projeto não tem vínculo com os Correios. Ele depende do site público de
   rastreamento, que pode mudar sem aviso.
 

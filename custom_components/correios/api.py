@@ -14,6 +14,7 @@ import aiohttp
 from yarl import URL
 
 from .const import (
+    LOGGER,
     LOGIN_ENTRY_URL,
     PACKAGES_URL,
     SESSION_STATUS_URL,
@@ -89,10 +90,12 @@ class CorreiosApiClient:
             # em vez de um erro, então uma sessão expirada parece "nenhum
             # pacote" até que o status da sessão diga o contrário.
             if await self._async_is_logged_in():
+                LOGGER.debug("Package listing came back empty for an active session")
                 return {}
             await self.async_authenticate()
             payload = await self._async_fetch_packages()
         if not isinstance(payload, Mapping):
+            LOGGER.debug("Package listing came back empty after logging in again")
             return {}
         if payload.get("erro") is True:
             msg = f"Failed to list packages: {payload.get('mensagem')}"

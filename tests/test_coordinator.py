@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 from custom_components.correios.const import DOMAIN
 from custom_components.correios.coordinator import (
     FAILURE_GRACE_PERIOD,
+    MISSING_PACKAGE_GRACE_PERIOD,
     CorreiosDataUpdateCoordinator,
 )
 from custom_components.correios.data import CorreiosPackageChangeType
@@ -123,3 +124,43 @@ async def test_update_clears_failure_window_after_success(hass, packages):
     coord._first_failure_at = dt_util.utcnow()
     await coord._async_update_data()
     assert coord._first_failure_at is None
+
+
+async def test_package_missing_from_one_response_keeps_last_known_values(
+    hass, packages
+):
+    coord, client = _make_coordinator(hass, packages)
+    coord.data = await coord._async_update_data()
+    client.async_get_packages.return_value = {}
+    result = await coord._async_update_data()
+    assert result[IN_TRANSIT_CODE] == packages[IN_TRANSIT_CODE]
+    assert coord.latest_changes == ()
+
+
+async def test_package_back_within_grace_period_is_not_announced_as_new(hass, packages):
+    coord, client = _make_coordinator(hass, packages)
+    coord.data = await coord._async_update_data()
+    client.async_get_packages.return_value = {}
+    coord.data = await coord._async_update_data()
+    client.async_get_packages.return_value = packages
+    coord.data = await coord._async_update_data()
+    assert coord.latest_changes == ()
+    assert coord._missing_since == {}
+
+
+async def test_package_missing_beyond_grace_period_is_dropped(hass, packages):
+    coord, client = _make_coordinator(hass, packages)
+    coord.data = await coord._async_update_data()
+    client.async_get_packages.return_value = {}
+    coord.data = await coord._async_update_data()
+    coord._missing_since = dict.fromkeys(
+        coord._missing_since,
+        dt_util.utcnow() - MISSING_PACKAGE_GRACE_PERIOD - timedelta(seconds=1),
+    )
+    assert await coord._async_update_data() == {}
+
+
+async def test_missing_delivered_package_past_retention_is_dropped(hass, packages):
+    coord, _ = _make_coordinator(hass, retention_days=0)
+    coord.data = {DELIVERED_CODE: packages[DELIVERED_CODE]}
+    assert await coord._async_update_data() == {}
