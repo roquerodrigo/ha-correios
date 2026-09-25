@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/roquerodrigo/ha-correios/compare/v1.0.0...v1.0.1) (2026-09-25)
+
+
+### Correções de bugs
+
+* **coordinator:** mantém por uma hora os pacotes que somem da listagem ([589a551](https://github.com/roquerodrigo/ha-correios/commit/589a551082cf2cfbb33798d9983ff7c75e49a421))
+
 ## 1.0.0 (2026-09-22)
 
 

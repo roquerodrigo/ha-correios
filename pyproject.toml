@@ -5,7 +5,7 @@
 # gerenciado; ``[tool.uv] package = false`` impede o uv de tentar
 # buildá-lo/instalá-lo.
 name = "ha-correios"
-version = "1.0.0"
+version = "1.0.1"
 description = "Integração para o Home Assistant que rastreia os pacotes dos Correios vinculados a um CPF ou CNPJ"
 requires-python = ">=3.14.2"
 
