@@ -9,6 +9,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.correios.const import DOMAIN
+from custom_components.correios.coordinator import MISSING_PACKAGE_GRACE_PERIOD
 from custom_components.correios.sensors import (
     CorreiosNextDeliverySensor,
     CorreiosPackageSensor,
@@ -89,33 +90,36 @@ async def test_new_package_gets_a_sensor_on_refresh(
     assert hass.states.get("sensor.correios_456_789_packages_in_transit").state == "3"
 
 
-async def test_package_no_longer_tracked_loses_its_sensor(
+async def test_package_missing_for_a_moment_keeps_its_sensor(
+    hass, setup_integration, mock_api_client, packages
+):
+    entity_id = f"sensor.correios_456_789_package_{DELIVERED_CODE.lower()}"
+    shrunk = {
+        code: package for code, package in packages.items() if code != DELIVERED_CODE
+    }
+    mock_api_client.async_get_packages.return_value = shrunk
+    await _refresh(hass, setup_integration)
+    assert er.async_get(hass).async_get(entity_id) is not None
+    assert hass.states.get(entity_id).state == packages[DELIVERED_CODE].status
+
+
+async def test_package_missing_beyond_grace_period_loses_its_sensor(
     hass, setup_integration, mock_api_client, packages
 ):
     shrunk = {
         code: package for code, package in packages.items() if code != DELIVERED_CODE
     }
     mock_api_client.async_get_packages.return_value = shrunk
+    await _refresh(hass, setup_integration)
+    coordinator = setup_integration.runtime_data.coordinator
+    coordinator._missing_since = dict.fromkeys(
+        coordinator._missing_since,
+        dt_util.utcnow() - MISSING_PACKAGE_GRACE_PERIOD - timedelta(seconds=1),
+    )
     await _refresh(hass, setup_integration)
     entity_id = f"sensor.correios_456_789_package_{DELIVERED_CODE.lower()}"
     assert er.async_get(hass).async_get(entity_id) is None
     assert hass.states.get(entity_id) is None
-
-
-async def test_package_coming_back_gets_its_sensor_again(
-    hass, setup_integration, mock_api_client, packages
-):
-    shrunk = {
-        code: package for code, package in packages.items() if code != DELIVERED_CODE
-    }
-    mock_api_client.async_get_packages.return_value = shrunk
-    await _refresh(hass, setup_integration)
-    mock_api_client.async_get_packages.return_value = packages
-    await _refresh(hass, setup_integration)
-    assert (
-        hass.states.get(f"sensor.correios_456_789_package_{DELIVERED_CODE.lower()}")
-        is not None
-    )
 
 
 async def test_stale_registry_entry_is_removed_on_setup(

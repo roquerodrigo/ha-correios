@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     )
 
 FAILURE_GRACE_PERIOD = timedelta(hours=1)
+MISSING_PACKAGE_GRACE_PERIOD = timedelta(hours=1)
 
 
 class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
@@ -54,6 +55,7 @@ class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
         )
         self._delivered_retention = delivered_retention
         self._first_failure_at: datetime | None = None
+        self._missing_since: dict[str, datetime] = {}
         self.latest_changes: tuple[CorreiosPackageChange, ...] = ()
 
     async def _async_update_data(self) -> CorreiosPackages:
@@ -67,19 +69,52 @@ class CorreiosDataUpdateCoordinator(DataUpdateCoordinator["CorreiosPackages"]):
 
         self._first_failure_at = None
         previous: CorreiosPackages | None = self.data
+        kept_missing = self._missing_packages_within_grace(previous, packages)
         relevant = {
             tracking_code: package
             for tracking_code, package in packages.items()
             if self._is_relevant(package)
-        }
+        } | kept_missing
         self.latest_changes = detect_package_changes(previous, relevant)
         LOGGER.debug(
-            "Fetched %d packages, %d relevant, %d changed",
+            "Fetched %d packages, %d relevant, %d missing but kept, %d changed",
             len(packages),
             len(relevant),
+            len(kept_missing),
             len(self.latest_changes),
         )
         return relevant
+
+    def _missing_packages_within_grace(
+        self,
+        previous: CorreiosPackages | None,
+        packages: CorreiosPackages,
+    ) -> CorreiosPackages:
+        """
+        Mantém, com os últimos valores conhecidos, os pacotes que sumiram há pouco.
+
+        O site às vezes responde com a listagem vazia ou incompleta para uma
+        sessão válida, e o pacote volta na consulta seguinte. Descartá-lo na hora
+        apagaria o sensor, faria as contagens oscilarem e anunciaria o retorno
+        como um pacote novo; só uma ausência que dura mais que a carência é
+        tratada como a saída real do pacote.
+        """
+        now = dt_util.utcnow()
+        missing = {
+            tracking_code: package
+            for tracking_code, package in (previous or {}).items()
+            if tracking_code not in packages
+        }
+        self._missing_since = {
+            tracking_code: self._missing_since.get(tracking_code, now)
+            for tracking_code in missing
+        }
+        return {
+            tracking_code: package
+            for tracking_code, package in missing.items()
+            if now - self._missing_since[tracking_code] < MISSING_PACKAGE_GRACE_PERIOD
+            and self._is_relevant(package)
+        }
 
     def _is_relevant(self, package: CorreiosPackage) -> bool:
         """Mantém os pacotes a caminho e os entregues dentro da retenção."""
