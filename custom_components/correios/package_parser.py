@@ -42,6 +42,17 @@ def parse_packages(payload: JsonObject) -> CorreiosPackages:
     return packages
 
 
+def parse_page_counts(payload: JsonObject) -> dict[CorreiosPackageDirection, int]:
+    """Informa quantas páginas a listagem tem em cada direção."""
+    pagination = _mapping(payload.get("paginacao"))
+    page_counts: dict[CorreiosPackageDirection, int] = {}
+    for direction_key, direction in _DIRECTION_KEYS:
+        total_pages = _mapping(pagination.get(direction_key)).get("totalPaginas")
+        if isinstance(total_pages, int) and not isinstance(total_pages, bool):
+            page_counts[direction] = total_pages
+    return page_counts
+
+
 def _parse_package(
     raw_package: JsonObject,
     direction: CorreiosPackageDirection,

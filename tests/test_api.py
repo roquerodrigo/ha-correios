@@ -10,6 +10,7 @@ import pytest
 from yarl import URL
 
 from custom_components.correios.api import (
+    MAX_LISTING_PAGES,
     CorreiosApiClient,
     _sanitized_error_text,
 )
@@ -22,15 +23,39 @@ from custom_components.correios.exceptions import (
     CorreiosApiClientAuthenticationError,
     CorreiosApiClientCommunicationError,
     CorreiosApiClientError,
+    CorreiosApiClientListingExpiredError,
 )
 
-from .conftest import IN_TRANSIT_CODE
+from .conftest import DELIVERED_CODE, IN_TRANSIT_CODE, SENT_CODE, raw_package
 
 CAS_LOGIN_URL = "https://cas.correios.com.br/login?service=tracking"
 SERVICE_URL = "https://rastreamento.correios.com.br/core/seguranca/service.php"
 LOGIN_FORM = '<input type="hidden" name="execution" value="token-123"/>'
 LOGGED_IN = json.dumps({"logado": True})
 LOGGED_OUT = json.dumps({"logado": False})
+NOT_LOGGED_IN_LISTING = json.dumps(
+    {"erro": True, "mensagem": "Usuário não está logado"}
+)
+LISTING_EXPIRED = json.dumps(
+    {"erro": True, "codigo": "SNAPSHOT_EXPIRADO", "mensagem": "Expirou"}
+)
+
+
+def _listing_page(
+    received_pages: int = 1, sent_pages: int = 1, **sections: list[dict]
+) -> str:
+    return json.dumps(
+        {
+            **{
+                section: {"transito": packages, "entregue": []}
+                for section, packages in sections.items()
+            },
+            "paginacao": {
+                "enviadoParaVoce": {"pagina": 1, "totalPaginas": received_pages},
+                "enviadoPorVoce": {"pagina": 1, "totalPaginas": sent_pages},
+            },
+        }
+    )
 
 
 def _response(body="", status=200, url=PACKAGES_URL):
@@ -83,9 +108,12 @@ async def test_get_packages_with_live_session(raw_payload):
     assert session.calls[0]["params"] == {"cpfcnpj": ""}
 
 
-async def test_get_packages_logs_in_when_the_session_expired(raw_payload):
+@pytest.mark.parametrize("anonymous_listing", [NOT_LOGGED_IN_LISTING, "[]"])
+async def test_get_packages_logs_in_when_the_session_expired(
+    raw_payload, anonymous_listing
+):
     session = FakeSession(
-        _response("[]"),
+        _response(anonymous_listing),
         _response(LOGGED_OUT, url=SESSION_STATUS_URL),
         _response(LOGIN_FORM, url=CAS_LOGIN_URL),
         _response("<html/>", url=SERVICE_URL),
@@ -190,10 +218,98 @@ async def test_login_without_session_raises_api_error():
         await _client(session).async_authenticate()
 
 
-async def test_error_payload_raises_api_error():
+async def test_error_payload_with_live_session_raises_api_error():
     body = json.dumps({"erro": True, "mensagem": "Sistema indisponível"})
+    session = FakeSession(
+        _response(body),
+        _response(LOGGED_IN, url=SESSION_STATUS_URL),
+    )
     with pytest.raises(CorreiosApiClientError, match="Sistema indisponível"):
-        await _client(FakeSession(_response(body))).async_get_packages()
+        await _client(session).async_get_packages()
+
+
+async def test_error_payload_after_a_fresh_login_raises_api_error():
+    session = FakeSession(
+        _response(NOT_LOGGED_IN_LISTING),
+        _response(LOGGED_OUT, url=SESSION_STATUS_URL),
+        _response("<html/>", url=SERVICE_URL),
+        _response(LOGGED_IN, url=SESSION_STATUS_URL),
+        _response(NOT_LOGGED_IN_LISTING),
+    )
+    with pytest.raises(CorreiosApiClientError, match="não está logado"):
+        await _client(session).async_get_packages()
+
+
+async def test_get_packages_reads_every_page_of_each_direction():
+    session = FakeSession(
+        _response(
+            _listing_page(
+                received_pages=2,
+                sent_pages=2,
+                enviadoParaVoce=[raw_package(IN_TRANSIT_CODE)],
+            )
+        ),
+        _response(_listing_page(enviadoParaVoce=[raw_package(DELIVERED_CODE)])),
+        _response(_listing_page(enviadoPorVoce=[raw_package(SENT_CODE)])),
+    )
+    packages = await _client(session).async_get_packages()
+    assert set(packages) == {IN_TRANSIT_CODE, DELIVERED_CODE, SENT_CODE}
+    assert [call["params"] for call in session.calls] == [
+        {"cpfcnpj": ""},
+        {"tipo": "D", "pagina": "2"},
+        {"tipo": "R", "pagina": "2"},
+    ]
+
+
+async def test_get_packages_stops_at_the_page_limit():
+    pages = [_response(_listing_page()) for _ in range(MAX_LISTING_PAGES - 1)]
+    session = FakeSession(
+        _response(_listing_page(received_pages=MAX_LISTING_PAGES + 10)), *pages
+    )
+    await _client(session).async_get_packages()
+    assert len(session.calls) == MAX_LISTING_PAGES
+
+
+async def test_expired_listing_is_fetched_again():
+    session = FakeSession(
+        _response(_listing_page(received_pages=2)),
+        _response(LISTING_EXPIRED),
+        _response(
+            _listing_page(
+                received_pages=2, enviadoParaVoce=[raw_package(IN_TRANSIT_CODE)]
+            )
+        ),
+        _response(_listing_page(enviadoParaVoce=[raw_package(DELIVERED_CODE)])),
+    )
+    packages = await _client(session).async_get_packages()
+    assert set(packages) == {IN_TRANSIT_CODE, DELIVERED_CODE}
+
+
+async def test_listing_expiring_twice_raises_api_error():
+    session = FakeSession(
+        _response(_listing_page(received_pages=2)),
+        _response(LISTING_EXPIRED),
+        _response(_listing_page(received_pages=2)),
+        _response(LISTING_EXPIRED),
+    )
+    with pytest.raises(CorreiosApiClientListingExpiredError):
+        await _client(session).async_get_packages()
+
+
+@pytest.mark.parametrize(
+    ("page_body", "message"),
+    [
+        ("[]", "page 2 is not a listing"),
+        (json.dumps({"erro": True, "mensagem": "Falhou"}), "Falhou"),
+    ],
+)
+async def test_unusable_next_page_raises_api_error(page_body, message):
+    session = FakeSession(
+        _response(_listing_page(received_pages=2)),
+        _response(page_body),
+    )
+    with pytest.raises(CorreiosApiClientError, match=message):
+        await _client(session).async_get_packages()
 
 
 async def test_non_json_body_raises_api_error():

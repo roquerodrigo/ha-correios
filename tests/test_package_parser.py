@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 
 from custom_components.correios.data import CorreiosPackageDirection
-from custom_components.correios.package_parser import parse_packages
+from custom_components.correios.package_parser import parse_packages, parse_page_counts
 
 from .conftest import (
     DELIVERED_CODE,
@@ -78,3 +78,27 @@ def test_unknown_time_zone_falls_back_to_sao_paulo():
     parsed = parse_packages(payload)["X1"].last_event_at
     assert parsed is not None
     assert parsed.utcoffset() is not None
+
+
+def test_page_counts_per_direction():
+    payload = {
+        "paginacao": {
+            "enviadoParaVoce": {"pagina": 1, "totalPaginas": 7},
+            "enviadoPorVoce": {"pagina": 1, "totalPaginas": 1},
+        }
+    }
+    assert parse_page_counts(payload) == {
+        CorreiosPackageDirection.RECEIVED: 7,
+        CorreiosPackageDirection.SENT: 1,
+    }
+
+
+def test_page_counts_ignore_missing_or_malformed_pagination():
+    payload = {
+        "paginacao": {
+            "enviadoParaVoce": {"totalPaginas": "7"},
+            "enviadoPorVoce": {"totalPaginas": True},
+        }
+    }
+    assert parse_page_counts(payload) == {}
+    assert parse_page_counts({}) == {}

@@ -8,7 +8,7 @@ import re
 import socket
 from collections.abc import Mapping
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeGuard
 
 import aiohttp
 from yarl import URL
@@ -21,18 +21,20 @@ from .const import (
     TRACKING_BASE_URL,
     TRACKING_PAGE_URL,
 )
-from .data import CorreiosHttpResponse
+from .data import CorreiosHttpResponse, CorreiosPackageDirection
 from .exceptions import (
     CorreiosApiClientAuthenticationError,
     CorreiosApiClientCommunicationError,
     CorreiosApiClientError,
+    CorreiosApiClientListingExpiredError,
 )
-from .package_parser import parse_packages
+from .package_parser import parse_packages, parse_page_counts
 
 if TYPE_CHECKING:
-    from .data import CorreiosPackages, JsonValue
+    from .data import CorreiosPackages, JsonObject, JsonValue
 
 REQUEST_TIMEOUT_SECONDS = 60
+MAX_LISTING_PAGES = 40
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/126.0.0.0 Safari/537.36"
@@ -42,6 +44,11 @@ _TRACKING_HOST = URL(TRACKING_BASE_URL).host
 _URL_QUERY_STRING = re.compile(r"\?\S*")
 _LOGIN_EXECUTION_TOKEN = re.compile(r'name="execution"\s+value="([^"]+)"')
 _LOGIN_CAPTCHA_ENABLED = re.compile(r'id="recaptchaEnabled"\s+value="true"')
+_LISTING_TYPES: dict[CorreiosPackageDirection, str] = {
+    CorreiosPackageDirection.RECEIVED: "D",
+    CorreiosPackageDirection.SENT: "R",
+}
+_LISTING_EXPIRED_CODE = "SNAPSHOT_EXPIRADO"
 
 
 def _sanitized_error_text(exception: BaseException) -> str:
@@ -84,26 +91,60 @@ class CorreiosApiClient:
 
     async def async_get_packages(self) -> CorreiosPackages:
         """Retorna todos os pacotes vinculados à conta, por código de rastreamento."""
-        payload = await self._async_fetch_packages()
-        if not isinstance(payload, Mapping):
-            # A listagem responde a uma requisição anônima com uma lista vazia
-            # em vez de um erro, então uma sessão expirada parece "nenhum
-            # pacote" até que o status da sessão diga o contrário.
-            if await self._async_is_logged_in():
-                LOGGER.debug("Package listing came back empty for an active session")
-                return {}
-            await self.async_authenticate()
-            payload = await self._async_fetch_packages()
-        if not isinstance(payload, Mapping):
-            LOGGER.debug("Package listing came back empty after logging in again")
-            return {}
-        if payload.get("erro") is True:
-            msg = f"Failed to list packages: {payload.get('mensagem')}"
-            raise CorreiosApiClientError(msg)
-        return parse_packages(payload)
+        try:
+            return await self._async_fetch_listing()
+        except CorreiosApiClientListingExpiredError:
+            LOGGER.debug("Package listing expired while paging; fetching it again")
+            return await self._async_fetch_listing()
 
-    async def _async_fetch_packages(self) -> JsonValue:
-        response = await self._async_send("get", PACKAGES_URL, query={"cpfcnpj": ""})
+    async def _async_fetch_listing(self) -> CorreiosPackages:
+        first_page = await self._async_fetch_first_page()
+        if first_page is None:
+            return {}
+        packages = parse_packages(first_page)
+        for direction, page_count in parse_page_counts(first_page).items():
+            for page in range(2, min(page_count, MAX_LISTING_PAGES) + 1):
+                packages.update(
+                    parse_packages(await self._async_fetch_page(direction, page))
+                )
+        return packages
+
+    async def _async_fetch_first_page(self) -> JsonObject | None:
+        """
+        Lê a primeira página, que também faz o site montar a listagem paginada.
+
+        Uma requisição anônima recebe um erro em vez dos pacotes, então só o
+        status da sessão diz se é preciso fazer login novamente.
+        """
+        payload = await self._async_fetch_packages({"cpfcnpj": ""})
+        if _is_listing(payload):
+            return payload
+        if not await self._async_is_logged_in():
+            await self.async_authenticate()
+            payload = await self._async_fetch_packages({"cpfcnpj": ""})
+        if not isinstance(payload, Mapping):
+            LOGGER.debug("Package listing came back empty for an active session")
+            return None
+        _raise_for_error(payload)
+        return payload
+
+    async def _async_fetch_page(
+        self, direction: CorreiosPackageDirection, page: int
+    ) -> JsonObject:
+        payload = await self._async_fetch_packages(
+            {"tipo": _LISTING_TYPES[direction], "pagina": str(page)}
+        )
+        if not isinstance(payload, Mapping):
+            msg = f"Failed to list packages: page {page} is not a listing"
+            raise CorreiosApiClientError(msg)
+        if payload.get("codigo") == _LISTING_EXPIRED_CODE:
+            msg = "Failed to list packages: the listing expired while paging"
+            raise CorreiosApiClientListingExpiredError(msg)
+        _raise_for_error(payload)
+        return payload
+
+    async def _async_fetch_packages(self, query: Mapping[str, str]) -> JsonValue:
+        response = await self._async_send("get", PACKAGES_URL, query=query)
         return _decode_json(response)
 
     async def _async_is_logged_in(self) -> bool:
@@ -176,6 +217,16 @@ class CorreiosApiClient:
             detail = _sanitized_error_text(exception)
             msg = f"Error fetching information - {detail}"
             raise CorreiosApiClientCommunicationError(msg) from exception
+
+
+def _is_listing(payload: JsonValue) -> TypeGuard[JsonObject]:
+    return isinstance(payload, Mapping) and payload.get("erro") is not True
+
+
+def _raise_for_error(payload: JsonObject) -> None:
+    if payload.get("erro") is True:
+        msg = f"Failed to list packages: {payload.get('mensagem')}"
+        raise CorreiosApiClientError(msg)
 
 
 def _decode_json(response: CorreiosHttpResponse) -> JsonValue:
