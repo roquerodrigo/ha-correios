@@ -9,9 +9,13 @@ from .api_client_communication_error import (
     CorreiosApiClientCommunicationError,
 )
 from .api_client_error import CorreiosApiClientError
+from .api_client_listing_expired_error import (
+    CorreiosApiClientListingExpiredError,
+)
 
 __all__ = [
     "CorreiosApiClientAuthenticationError",
     "CorreiosApiClientCommunicationError",
     "CorreiosApiClientError",
+    "CorreiosApiClientListingExpiredError",
 ]
