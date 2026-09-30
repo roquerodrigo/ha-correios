@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.2](https://github.com/roquerodrigo/ha-correios/compare/v1.0.1...v1.0.2) (2026-09-30)
+
+
+### Correções de bugs
+
+* **api:** acompanha a listagem paginada do site de rastreamento ([951f7ff](https://github.com/roquerodrigo/ha-correios/commit/951f7ff9d209e1c6ae819111a97ca66677b72a7a))
+
+
+### Dependências de desenvolvimento
+
+* **deps-dev:** bump ruff in the python-deps group ([cdf56e4](https://github.com/roquerodrigo/ha-correios/commit/cdf56e41219664cdeaa96aebe513a4ad0f6a6e03))
+
+
+### Sistema de build
+
+* **release:** atualiza o uv.lock pelo release-please ([3e1addc](https://github.com/roquerodrigo/ha-correios/commit/3e1addca67eedbec07e7f0b2385a12bc5569e889))
+
 ## [1.0.1](https://github.com/roquerodrigo/ha-correios/compare/v1.0.0...v1.0.1) (2026-09-25)
 
 
