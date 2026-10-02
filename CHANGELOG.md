@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/roquerodrigo/ha-correios/compare/v1.0.2...v1.1.0) (2026-10-02)
+
+
+### Funcionalidades
+
+* **sensor:** exibe a unidade atual e a de destino do pacote ([fcf20d8](https://github.com/roquerodrigo/ha-correios/commit/fcf20d862ef17f6e8f570efbf987cf9b2834bd70))
+
 ## [1.0.2](https://github.com/roquerodrigo/ha-correios/compare/v1.0.1...v1.0.2) (2026-09-30)
 
 
