@@ -70,10 +70,16 @@ mais tempo do que a retenção configurada.
 ### Atributos do sensor de pacote
 
 `tracking_code`, `direction` (`received` / `sent`), `delivered`, `delayed`,
-`detail`, `location`, `category`, `expected_delivery`, `last_event_at` e
-`events` — o histórico completo, do mais recente para o mais antigo, cada
-entrada com `description`, `detail`, `occurred_at`, `location` e `destination`.
+`detail`, `unit`, `location`, `destination_unit`, `destination`, `category`,
+`expected_delivery`, `last_event_at` e `events` — o histórico completo, do mais
+recente para o mais antigo, cada entrada com `description`, `detail`,
+`occurred_at`, `unit`, `location`, `destination_unit` e `destination`.
 O atributo `events` não é gravado no recorder.
+
+`unit` e `location` indicam onde o pacote está (por exemplo,
+`Unidade de Logística Integrada` em `Valinhos - SP`); durante uma transferência,
+`destination_unit` e `destination` indicam para onde ele segue (por exemplo,
+`Unidade de Tratamento` em `Sao Paulo - SP`).
 
 ## Card de dashboard
 

@@ -33,7 +33,11 @@ def raw_timestamp(days_ago: float) -> dict:
 
 
 def raw_event(description: str, days_ago: float, *, destination: bool = False) -> dict:
-    unit = {"nome": "", "endereco": {"cidade": "Valinhos", "uf": "SP"}}
+    unit = {
+        "nome": "",
+        "tipo": "Unidade de Logística Integrada",
+        "endereco": {"cidade": "Valinhos", "uf": "SP"},
+    }
     return {
         "codigo": "RO",
         "tipo": "01",
@@ -41,7 +45,11 @@ def raw_event(description: str, days_ago: float, *, destination: bool = False) -
         "descricao": description,
         "detalhe": "",
         "unidade": unit,
-        "unidadeDestino": {"endereco": {"cidade": "Sao Paulo", "uf": "SP"}}
+        "unidadeDestino": {
+            "nome": "",
+            "tipo": "Unidade de Tratamento",
+            "endereco": {"cidade": "Sao Paulo", "uf": "SP"},
+        }
         if destination
         else None,
     }

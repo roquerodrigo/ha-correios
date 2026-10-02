@@ -27,7 +27,9 @@ def _event_attributes(event: CorreiosPackageEvent) -> dict[str, str | None]:
         "description": event.description,
         "detail": event.detail or None,
         "occurred_at": event.occurred_at.isoformat() if event.occurred_at else None,
+        "unit": event.unit or None,
         "location": event.location or None,
+        "destination_unit": event.destination_unit or None,
         "destination": event.destination or None,
     }
 
@@ -83,7 +85,10 @@ class CorreiosPackageSensor(CorreiosEntity, SensorEntity):
             "delivered": package.delivered,
             "delayed": package.delayed,
             "detail": package.status_detail or None,
+            "unit": package.unit or None,
             "location": package.location or None,
+            "destination_unit": package.destination_unit or None,
+            "destination": package.destination or None,
             "category": package.category or None,
             "expected_delivery": package.expected_delivery.isoformat()
             if package.expected_delivery

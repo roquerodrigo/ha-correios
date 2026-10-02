@@ -60,11 +60,17 @@ async def test_package_sensor_state_and_attributes(hass, setup_integration):
     assert state.attributes["tracking_code"] == IN_TRANSIT_CODE
     assert state.attributes["direction"] == "received"
     assert state.attributes["delivered"] is False
+    assert state.attributes["unit"] == "Unidade de Logística Integrada"
     assert state.attributes["location"] == "Valinhos - SP"
+    assert state.attributes["destination_unit"] == "Unidade de Tratamento"
+    assert state.attributes["destination"] == "Sao Paulo - SP"
     assert state.attributes["expected_delivery"] == "2026-09-25"
     assert state.attributes["detail"] is None
     assert len(state.attributes["events"]) == 2
+    assert state.attributes["events"][0]["unit"] == "Unidade de Logística Integrada"
+    assert state.attributes["events"][0]["destination_unit"] == "Unidade de Tratamento"
     assert state.attributes["events"][0]["destination"] == "Sao Paulo - SP"
+    assert state.attributes["events"][1]["destination_unit"] is None
     assert state.attributes["events"][1]["destination"] is None
 
 

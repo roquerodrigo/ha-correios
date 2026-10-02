@@ -17,5 +17,7 @@ class CorreiosPackageEvent:
     description: str
     detail: str
     occurred_at: datetime | None
+    unit: str
     location: str
+    destination_unit: str
     destination: str

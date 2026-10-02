@@ -37,10 +37,41 @@ def test_package_fields(packages):
 
 def test_events_carry_origin_and_destination(packages):
     first, last = packages[IN_TRANSIT_CODE].events
+    assert first.unit == "Unidade de Logística Integrada"
     assert first.location == "Valinhos - SP"
+    assert first.destination_unit == "Unidade de Tratamento"
     assert first.destination == "Sao Paulo - SP"
     assert last.description == "Objeto postado"
+    assert last.destination_unit == ""
     assert last.destination == ""
+
+
+def test_package_route_comes_from_the_latest_event(packages):
+    package = packages[IN_TRANSIT_CODE]
+    assert package.unit == "Unidade de Logística Integrada"
+    assert package.destination_unit == "Unidade de Tratamento"
+    assert package.destination == "Sao Paulo - SP"
+
+
+def test_package_without_events_has_no_route():
+    raw = raw_package("X1")
+    raw["objeto"]["eventos"] = []
+    package = parse_packages({"enviadoParaVoce": {"transito": [raw]}})["X1"]
+    assert package.unit == ""
+    assert package.destination_unit == ""
+    assert package.destination == ""
+
+
+def test_unit_name_joins_kind_and_name():
+    raw = raw_package("X1")
+    raw["objeto"]["eventos"][0]["unidade"] = {
+        "nome": "CHINA",
+        "tipo": "País",
+        "endereco": {"cidade": None, "uf": None},
+    }
+    event = parse_packages({"enviadoParaVoce": {"transito": [raw]}})["X1"].events[0]
+    assert event.unit == "País, CHINA"
+    assert event.location == ""
 
 
 def test_missing_expected_delivery_is_none(packages):

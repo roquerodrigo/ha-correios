@@ -27,3 +27,18 @@ class CorreiosPackage:
     expected_delivery: date | None
     last_event_at: datetime | None
     events: tuple[CorreiosPackageEvent, ...]
+
+    @property
+    def unit(self) -> str:
+        """Retorna a unidade dos Correios onde o pacote está."""
+        return self.events[0].unit if self.events else ""
+
+    @property
+    def destination_unit(self) -> str:
+        """Retorna a unidade para onde o pacote está sendo transferido."""
+        return self.events[0].destination_unit if self.events else ""
+
+    @property
+    def destination(self) -> str:
+        """Retorna a cidade para onde o pacote está sendo transferido."""
+        return self.events[0].destination if self.events else ""

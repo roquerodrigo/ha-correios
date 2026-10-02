@@ -34,6 +34,9 @@ async def test_status_change_fires_an_event(
     assert state.attributes["tracking_code"] == IN_TRANSIT_CODE
     assert state.attributes["status"] == "Objeto saiu para entrega ao destinatário"
     assert state.attributes["expected_delivery"] == "2026-09-25"
+    assert state.attributes["unit"] == "Unidade de Logística Integrada"
+    assert state.attributes["destination_unit"] == "Unidade de Tratamento"
+    assert state.attributes["destination"] == "Sao Paulo - SP"
 
 
 async def test_every_change_of_a_refresh_is_written(
