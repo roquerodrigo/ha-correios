@@ -94,9 +94,18 @@ def _parse_event(raw_event: JsonObject) -> CorreiosPackageEvent:
         description=_text(raw_event.get("descricao")),
         detail=_text(raw_event.get("detalhe")),
         occurred_at=_parse_timestamp(raw_event.get("dtHrCriado")),
+        unit=_unit_name(raw_event.get("unidade")),
         location=_unit_location(raw_event.get("unidade")),
+        destination_unit=_unit_name(raw_event.get("unidadeDestino")),
         destination=_unit_location(raw_event.get("unidadeDestino")),
     )
+
+
+def _unit_name(raw_unit: JsonValue) -> str:
+    """Monta o nome da unidade como o site o exibe, ex.: ``País, CHINA``."""
+    unit = _mapping(raw_unit)
+    parts = (_text(unit.get("tipo")).strip(), _text(unit.get("nome")).strip())
+    return ", ".join(part for part in parts if part)
 
 
 def _unit_location(raw_unit: JsonValue) -> str:

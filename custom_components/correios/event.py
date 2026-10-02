@@ -61,7 +61,10 @@ class CorreiosPackageUpdateEvent(CorreiosEntity, EventEntity):
                     "direction": package.direction.value,
                     "status": package.status,
                     "detail": package.status_detail or None,
+                    "unit": package.unit or None,
                     "location": package.location or None,
+                    "destination_unit": package.destination_unit or None,
+                    "destination": package.destination or None,
                     "expected_delivery": package.expected_delivery.isoformat()
                     if package.expected_delivery
                     else None,

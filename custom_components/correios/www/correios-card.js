@@ -13,6 +13,7 @@ const TRANSLATIONS = {
     "card.expected": "Expected",
     "card.delayed": "Delayed",
     "card.sent": "Sent by you",
+    "card.from": "from",
     "card.to": "to",
     "card.details": "Details",
     "editor.title": "Title",
@@ -29,6 +30,7 @@ const TRANSLATIONS = {
     "card.expected": "Previsão",
     "card.delayed": "Atrasado",
     "card.sent": "Enviado por você",
+    "card.from": "de",
     "card.to": "para",
     "card.details": "Detalhes",
     "editor.title": "Título",
@@ -109,6 +111,16 @@ const formatShortDateTime = (hass, isoDateTime) => {
   }).format(new Date(isoDateTime));
 };
 
+const formatPlace = (unit, location) => [unit, location].filter(Boolean).join(", ");
+
+const routeLines = (hass, origin, destination) => {
+  if (!destination) return origin ? [origin] : [];
+  return [
+    origin ? `${localize(hass, "card.from")} ${origin}` : null,
+    `${localize(hass, "card.to")} ${destination}`,
+  ].filter(Boolean);
+};
+
 const packageIcon = (parcel) => {
   if (parcel.delivered) return "mdi:package-variant-closed-check";
   if (parcel.delayed) return "mdi:truck-alert";
@@ -186,7 +198,11 @@ class CorreiosCard extends HTMLElement {
         trackingCode: state.attributes.tracking_code ?? entry.entity_id,
         status: state.state,
         detail: state.attributes.detail,
-        location: state.attributes.location,
+        place: formatPlace(state.attributes.unit, state.attributes.location),
+        destinationPlace: formatPlace(
+          state.attributes.destination_unit,
+          state.attributes.destination,
+        ),
         category: state.attributes.category,
         expectedDelivery: state.attributes.expected_delivery,
         lastEventAt: state.attributes.last_event_at,
@@ -217,6 +233,8 @@ class CorreiosCard extends HTMLElement {
         parcel.entityId,
         parcel.customName,
         parcel.status,
+        parcel.place,
+        parcel.destinationPlace,
         parcel.lastEventAt,
         parcel.expectedDelivery,
         parcel.delivered,
@@ -295,7 +313,9 @@ class CorreiosCard extends HTMLElement {
     if (parcel.sent) {
       badges.push(`<span class="badge">${escapeHtml(localize(hass, "card.sent"))}</span>`);
     }
-    const facts = [parcel.location, formatShortDateTime(hass, parcel.lastEventAt)].filter(Boolean);
+    const route = parcel.delivered ? [] : routeLines(hass, parcel.place, parcel.destinationPlace);
+    const facts = [formatShortDateTime(hass, parcel.lastEventAt)].filter(Boolean);
+    if (parcel.delivered && parcel.place) facts.unshift(parcel.place);
     if (parcel.customName) facts.unshift(parcel.trackingCode);
 
     return `
@@ -308,6 +328,9 @@ class CorreiosCard extends HTMLElement {
               ${badges.join("")}
             </div>
             <div class="status" title="${escapeHtml(parcel.status)}">${escapeHtml(parcel.status)}</div>
+            ${route
+              .map((line) => `<div class="route" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`)
+              .join("")}
             <div class="facts" title="${escapeHtml(facts.join(" · "))}">${escapeHtml(facts.join(" · "))}</div>
           </div>
           ${
@@ -337,19 +360,18 @@ class CorreiosCard extends HTMLElement {
         <ol class="timeline">
           ${events
             .map((event) => {
-              const route = [
-                event.location,
-                event.destination ? `${localize(hass, "card.to")} ${event.destination}` : null,
-              ]
-                .filter(Boolean)
-                .join(" ");
+              const route = routeLines(
+                hass,
+                formatPlace(event.unit, event.location),
+                formatPlace(event.destination_unit, event.destination),
+              );
+              const occurredAt = formatShortDateTime(hass, event.occurred_at);
               return `
                 <li>
                   <div class="event-description">${escapeHtml(event.description ?? "")}</div>
                   ${event.detail ? `<div class="event-detail">${escapeHtml(event.detail)}</div>` : ""}
-                  <div class="event-facts">${escapeHtml(
-                    [formatShortDateTime(hass, event.occurred_at), route].filter(Boolean).join(" · "),
-                  )}</div>
+                  ${route.map((line) => `<div class="event-facts">${escapeHtml(line)}</div>`).join("")}
+                  ${occurredAt ? `<div class="event-facts">${escapeHtml(occurredAt)}</div>` : ""}
                 </li>`;
             })
             .join("")}
@@ -366,7 +388,7 @@ class CorreiosCard extends HTMLElement {
       .header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
       .header > ha-icon { color: var(--primary-color); }
       .title { font-size: 1.2em; font-weight: 500; color: var(--primary-text-color); }
-      .summary, .facts, .event-facts, .category, .expected-label {
+      .summary, .route, .facts, .event-facts, .category, .expected-label {
         font-size: 0.85em; color: var(--secondary-text-color);
       }
       .empty { padding: 16px 0 8px; color: var(--secondary-text-color); text-align: center; }
@@ -386,7 +408,7 @@ class CorreiosCard extends HTMLElement {
       .body { flex: 1; min-width: 0; }
       .row { display: flex; align-items: center; gap: 8px; min-width: 0; }
       .name { font-weight: 500; color: var(--primary-text-color); letter-spacing: 0.02em; }
-      .name, .status, .facts { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .name, .status, .route, .facts { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .status { color: var(--primary-text-color); font-size: 0.95em; }
       .badge {
         flex: none; font-size: 0.7em; padding: 1px 8px; border-radius: 10px;
