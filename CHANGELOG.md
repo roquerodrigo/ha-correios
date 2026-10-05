@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/roquerodrigo/ha-correios/compare/v1.1.0...v1.1.1) (2026-10-05)
+
+
+### Dependências de desenvolvimento
+
+* **deps-dev:** bump the python-deps group with 2 updates ([c1bfc02](https://github.com/roquerodrigo/ha-correios/commit/c1bfc026984679fc04fe4f713cf6825f7bd65958))
+
 ## [1.1.0](https://github.com/roquerodrigo/ha-correios/compare/v1.0.2...v1.1.0) (2026-10-02)
 
 
