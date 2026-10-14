@@ -84,8 +84,7 @@
         },
         {
           "type": "chore",
-          "section": "Tarefas diversas",
-          "hidden": true
+          "section": "Tarefas diversas"
         }
       ]
     }
