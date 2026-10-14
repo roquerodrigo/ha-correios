@@ -48,11 +48,13 @@
         },
         {
           "type": "deps",
-          "section": "Dependências"
+          "section": "Dependências",
+          "hidden": true
         },
         {
           "type": "deps-dev",
-          "section": "Dependências de desenvolvimento"
+          "section": "Dependências de desenvolvimento",
+          "hidden": true
         },
         {
           "type": "docs",
