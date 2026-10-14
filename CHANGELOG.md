@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1](https://github.com/roquerodrigo/ha-correios/compare/v1.1.0...v1.1.1) (2026-10-14)
+
+
+### Tarefas diversas
+
+* **release:** mantém as tarefas diversas visíveis no changelog ([704d220](https://github.com/roquerodrigo/ha-correios/commit/704d2206dd430c69377a6cfca5c5519f306e0f69))
+* **release:** oculta as dependências do changelog ([f2eb2aa](https://github.com/roquerodrigo/ha-correios/commit/f2eb2aaa528226cdebe212ab1afb3a33d6e7b0e1))
+* **release:** oculta do changelog os tipos internos ([c892560](https://github.com/roquerodrigo/ha-correios/commit/c89256052d044c4627b2ad7f23e4e4cc25fdc658))
+
 ## [1.1.0](https://github.com/roquerodrigo/ha-correios/compare/v1.0.2...v1.1.0) (2026-10-02)
 
 
