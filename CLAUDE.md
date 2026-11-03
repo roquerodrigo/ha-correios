@@ -43,6 +43,8 @@ A versão do Home Assistant é fixada em dois lugares e **precisa ser atualizada
 
 Confira o pareamento no PyPI antes de commitar: o `requires_dist` do `pytest-homeassistant-custom-component` precisa listar o mesmo `homeassistant==<X.Y.Z>` fixado no `pyproject.toml`.
 
+O `pytest`, o `pytest-asyncio` e o `pytest-cov` não são fixados diretamente: o harness já os fixa, então eles sobem junto com ele. O Dependabot ignora tanto o `homeassistant` quanto o harness.
+
 ## Convenções que não são evidentes pelo código
 
 A integração segue o padrão `DataUpdateCoordinator` do HA. Algumas escolhas não ficam evidentes pela leitura de um único arquivo:
