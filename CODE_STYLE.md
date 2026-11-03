@@ -16,8 +16,7 @@ Brasil, e por isso o idioma do repositório é o **português do Brasil**.
   - Documentação: `README.md`, `CONTRIBUTING.md`, este arquivo, `CLAUDE.md`,
     qualquer outro Markdown, docstrings e comentários de código.
   - Histórico do Git: assunto e corpo dos commits, títulos e descrições de PR.
-  - Releases: notas de release e `CHANGELOG.md`, inclusive os títulos de seção
-    (`changelog-sections` no `release-please-config.json`).
+  - Releases: notas de release e `CHANGELOG.md`, inclusive os títulos de seção.
   - Comunicação pública: issues, comentários em issues e PRs, reviews,
     discussions, os templates de issue e o template de PR em `.github/`.
   - Metadados do repositório: a descrição no GitHub e o `description` do
@@ -302,7 +301,8 @@ repositório a cada push via `hacs/action@main` (e o próprio HA executa o
 - Um `README.md` na raiz do repositório é obrigatório; o HACS o exibe como a
   descrição da integração. O cabeçalho dele segue o layout abaixo.
 
-O release-please cria a tag dos releases a cada merge na `main`; o HACS exibe
+O [release-autopilot](https://github.com/roquerodrigo/release-autopilot) cria a
+tag dos releases a cada merge do pull request de release na `main`; o HACS exibe
 aos usuários os cinco releases mais recentes do GitHub, então mantenha o
 changelog fácil de localizar com grep.
 
@@ -372,8 +372,8 @@ um `git commit --no-verify` de emergência e, logo em seguida, execute novamente
 ## Conventional commits
 
 Todos os commits seguem o [Conventional Commits](https://www.conventionalcommits.org/),
-que o `release-please` interpreta para incrementar a versão e gerar o
-`CHANGELOG.md`:
+que o `release-autopilot` interpreta para incrementar a versão e escrever as
+notas da release e o `CHANGELOG.md`:
 
 | Tipo | Significado | Incremento |
 |---|---|---|
