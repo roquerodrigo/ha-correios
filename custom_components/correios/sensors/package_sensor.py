@@ -6,9 +6,12 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
 
+from ..devices import CorreiosPackageDevice
 from ..entity import CorreiosEntity
 
 if TYPE_CHECKING:
+    from homeassistant.helpers.device_registry import ChildDeviceInfo
+
     from ..coordinator import CorreiosDataUpdateCoordinator
     from ..data import CorreiosPackage, CorreiosPackageEvent
 
@@ -35,8 +38,9 @@ def _event_attributes(event: CorreiosPackageEvent) -> dict[str, str | None]:
 
 
 class CorreiosPackageSensor(CorreiosEntity, SensorEntity):
-    """Status de rastreamento mais recente de um pacote, nomeado pelo seu código."""
+    """Status de rastreamento mais recente de um pacote, no subdispositivo dele."""
 
+    _attr_name = None
     _attr_translation_key = "package"
     _unrecorded_attributes = frozenset({"events"})
 
@@ -48,7 +52,6 @@ class CorreiosPackageSensor(CorreiosEntity, SensorEntity):
         """Inicializa."""
         super().__init__(coordinator)
         self._tracking_code = tracking_code
-        self._attr_translation_placeholders = {"tracking_code": tracking_code}
 
     @property
     def unique_id(self) -> str:
@@ -56,6 +59,14 @@ class CorreiosPackageSensor(CorreiosEntity, SensorEntity):
         return package_sensor_unique_id(
             self.coordinator.config_entry.entry_id, self._tracking_code
         )
+
+    @property
+    def device_info(self) -> ChildDeviceInfo:
+        """Retorna o pacote como subdispositivo do dispositivo da conta."""
+        return CorreiosPackageDevice(
+            self._tracking_code,
+            self.coordinator.config_entry.runtime_data.account_device_id,
+        ).info
 
     @property
     def package(self) -> CorreiosPackage | None:

@@ -19,3 +19,4 @@ class CorreiosData:
     client: CorreiosApiClient
     coordinator: CorreiosDataUpdateCoordinator
     integration: Integration
+    account_device_id: str

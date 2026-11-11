@@ -4,6 +4,7 @@ from dataclasses import replace
 from datetime import date, timedelta
 from unittest.mock import MagicMock
 
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
@@ -126,6 +127,12 @@ async def test_package_missing_beyond_grace_period_loses_its_sensor(
     entity_id = f"sensor.correios_456_789_package_{DELIVERED_CODE.lower()}"
     assert er.async_get(hass).async_get(entity_id) is None
     assert hass.states.get(entity_id) is None
+    assert (
+        dr.async_get(hass).async_get_child_device_by_identifier(
+            (DOMAIN, DELIVERED_CODE), setup_integration.entry_id
+        )
+        is None
+    )
 
 
 async def test_stale_registry_entry_is_removed_on_setup(

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING, cast
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_SCAN_INTERVAL, Platform
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.loader import async_get_loaded_integration
@@ -19,10 +20,11 @@ from .const import (
 )
 from .coordinator import CorreiosDataUpdateCoordinator
 from .data import CorreiosData
+from .devices import CorreiosAccountDevice, CorreiosPackageDevice
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceEntry
+    from homeassistant.helpers.device_registry import AnyDeviceEntry
 
     from .data import CorreiosConfigData, CorreiosConfigEntry
 
@@ -57,6 +59,7 @@ async def async_setup_entry(
         ),
         integration=async_get_loaded_integration(hass, entry.domain),
         coordinator=coordinator,
+        account_device_id=CorreiosAccountDevice(entry).register(hass),
     )
 
     await coordinator.async_config_entry_first_refresh()
@@ -101,13 +104,23 @@ async def async_reload_entry(
 async def async_remove_config_entry_device(
     hass: HomeAssistant,  # noqa: ARG001 -- faz parte da assinatura que o Home Assistant chama
     entry: CorreiosConfigEntry,
-    device_entry: DeviceEntry,
+    device_entry: AnyDeviceEntry,
 ) -> bool:
     """
     Permite excluir dispositivos que esta entry não fornece mais.
 
     O Home Assistant esconde o botão "excluir dispositivo" a menos que a
-    integração implemente este hook. O dispositivo da conta é recusado porque a
-    próxima atualização o recriaria; qualquer outra sobra pode ser excluída.
+    integração implemente este hook. O dispositivo da conta e os dos pacotes
+    ainda rastreados são recusados porque continuam em uso; qualquer outra
+    sobra pode ser excluída.
     """
-    return (DOMAIN, entry.entry_id) not in device_entry.identifiers
+    tracked_codes = (
+        entry.runtime_data.coordinator.data
+        if entry.state is ConfigEntryState.LOADED
+        else {}
+    )
+    provided_identifiers = {CorreiosAccountDevice(entry).identifier} | {
+        CorreiosPackageDevice.identifier_for(tracking_code)
+        for tracking_code in tracked_codes
+    }
+    return not device_entry.identifiers & provided_identifiers
