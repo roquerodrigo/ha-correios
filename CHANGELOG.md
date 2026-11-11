@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/roquerodrigo/ha-correios/compare/v1.1.0...v1.2.0) (2026-11-11)
+
+Cada pacote rastreado passa a ser um subdispositivo da conta, com novos sensores de previsão de entrega e de número de rastreio, e a versão mínima do Home Assistant sobe para 2026.10.4.
+
+### Mudanças incompatíveis
+
+- A integração passa a exigir o Home Assistant 2026.10.4 ou mais recente; atualize o Home Assistant antes de atualizar a integração. ([#35](https://github.com/roquerodrigo/ha-correios/pull/35))
+
+### Novidades
+
+- Cada pacote rastreado ganha o sensor de previsão de entrega, desconhecido quando os Correios não informam a data, e o sensor de número de rastreio. ([#35](https://github.com/roquerodrigo/ha-correios/pull/35))
+
+### Melhorias
+
+- Cada pacote rastreado aparece como subdispositivo da conta, com o nome Pacote seguido do código; os sensores existentes mantêm o mesmo identificador. ([#35](https://github.com/roquerodrigo/ha-correios/pull/35))
+- O subdispositivo de um pacote ainda rastreado não pode ser excluído manualmente; o de um pacote que saiu da listagem pode. ([#35](https://github.com/roquerodrigo/ha-correios/pull/35))
+
 ## [1.1.0](https://github.com/roquerodrigo/ha-correios/compare/v1.0.2...v1.1.0) (2026-10-02)
 
 
