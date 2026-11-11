@@ -14,9 +14,9 @@ package = false
 
 [dependency-groups]
 dev = [
-    "homeassistant==2026.7.2",
+    "homeassistant==2026.10.4",
     "pre-commit==4.7.0",
-    "pytest-homeassistant-custom-component==0.13.346",
+    "pytest-homeassistant-custom-component==0.13.375",
 ]
 lint = [
     "ruff==0.17.4",

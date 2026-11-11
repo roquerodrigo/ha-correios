@@ -118,8 +118,8 @@ async def test_remove_device_refuses_the_device_the_entry_provides(
     )
     from custom_components.correios.const import DOMAIN
 
-    device = dr.async_get(hass).async_get_device(
-        identifiers={(DOMAIN, setup_integration.entry_id)}
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, setup_integration.entry_id), setup_integration.entry_id
     )
     assert device is not None
     assert not await async_remove_config_entry_device(hass, setup_integration, device)
