@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, TRACKING_PAGE_URL
+from .const import ATTRIBUTION
 from .coordinator import CorreiosDataUpdateCoordinator
+from .devices import CorreiosAccountDevice
 
 if TYPE_CHECKING:
+    from homeassistant.helpers.device_registry import ChildDeviceInfo, DeviceInfo
+
     from .data import CorreiosPackages
 
 
@@ -21,15 +23,9 @@ class CorreiosEntity(CoordinatorEntity[CorreiosDataUpdateCoordinator]):
     _attr_has_entity_name = True
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | ChildDeviceInfo:
         """Retorna o device info da conta que a config entry representa."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
-            name=f"Correios {self.coordinator.config_entry.title}",
-            manufacturer="Correios",
-            entry_type=DeviceEntryType.SERVICE,
-            configuration_url=TRACKING_PAGE_URL,
-        )
+        return CorreiosAccountDevice(self.coordinator.config_entry).info
 
     @property
     def packages(self) -> CorreiosPackages:

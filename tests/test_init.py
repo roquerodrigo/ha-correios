@@ -140,3 +140,39 @@ async def test_remove_device_allows_a_device_the_entry_no_longer_provides(
         identifiers={(DOMAIN, "device-that-went-away")},
     )
     assert await async_remove_config_entry_device(hass, setup_integration, stale)
+
+
+async def test_remove_device_refuses_a_tracked_package_device(hass, setup_integration):
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.correios import async_remove_config_entry_device
+    from custom_components.correios.const import DOMAIN
+
+    from .conftest import IN_TRANSIT_CODE
+
+    device = dr.async_get(hass).async_get_child_device_by_identifier(
+        (DOMAIN, IN_TRANSIT_CODE), setup_integration.entry_id
+    )
+    assert device is not None
+    assert not await async_remove_config_entry_device(hass, setup_integration, device)
+
+
+async def test_remove_device_allows_package_devices_of_an_unloaded_entry(
+    hass, setup_integration
+):
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.correios import async_remove_config_entry_device
+    from custom_components.correios.const import DOMAIN
+
+    from .conftest import IN_TRANSIT_CODE
+
+    device = dr.async_get(hass).async_get_child_device_by_identifier(
+        (DOMAIN, IN_TRANSIT_CODE), setup_integration.entry_id
+    )
+    await hass.config_entries.async_unload(setup_integration.entry_id)
+    await hass.async_block_till_done()
+    assert await async_remove_config_entry_device(hass, setup_integration, device)
+    assert not await async_remove_config_entry_device(
+        hass, setup_integration, dr.async_get(hass).async_get(device.parent_device_id)
+    )

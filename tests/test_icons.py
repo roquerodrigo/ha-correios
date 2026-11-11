@@ -5,6 +5,8 @@ from pathlib import Path
 
 COMPONENT_DIR = Path(__file__).parent.parent / "custom_components" / "correios"
 
+DEVICE_NAMED_ENTITY_KEYS = {("sensor", "package")}
+
 
 def _entity_keys(section: dict) -> set[tuple[str, str]]:
     return {(platform, key) for platform, block in section.items() for key in block}
@@ -22,7 +24,11 @@ def test_icon_entity_keys_are_translated():
     translations = json.loads(
         (COMPONENT_DIR / "translations" / "en.json").read_text(encoding="utf-8"),
     )
-    orphans = _entity_keys(_icons()["entity"]) - _entity_keys(translations["entity"])
+    orphans = (
+        _entity_keys(_icons()["entity"])
+        - _entity_keys(translations["entity"])
+        - DEVICE_NAMED_ENTITY_KEYS
+    )
     assert not orphans, f"icons.json styles entities en.json does not know: {orphans}"
 
 

@@ -9,6 +9,8 @@ TRANSLATIONS_DIR = (
     Path(__file__).parent.parent / "custom_components" / "correios" / "translations"
 )
 
+DEVICE_NAMED_ENTITY_KEYS = {("sensor", "package")}
+
 
 def _flatten_keys(data, prefix=""):
     keys = set()
@@ -75,15 +77,28 @@ async def test_entity_translation_keys_and_authored_names_agree(
     nada. Comparar os locales entre si também não pega isso — uma chave
     ausente dos dois lados coincide, e a entidade recorre ao nome da sua
     device class enquanto o nome escrito nunca aparece.
+
+    As entidades que levam o nome do subdispositivo não têm nome próprio; a
+    lista delas é conferida contra o registry para que uma tradução ausente
+    não se esconda entre elas.
     """
     from homeassistant.helpers import entity_registry as er
 
     registry = er.async_get(hass)
-    requested = {
-        (entry.domain, entry.translation_key)
+    entries = [
+        entry
         for entry in registry.entities.values()
         if entry.platform == "correios" and entry.translation_key is not None
+    ]
+    device_named = {
+        (entry.domain, entry.translation_key)
+        for entry in entries
+        if entry.original_name is None
     }
+    assert device_named == DEVICE_NAMED_ENTITY_KEYS
+    requested = {
+        (entry.domain, entry.translation_key) for entry in entries
+    } - DEVICE_NAMED_ENTITY_KEYS
     assert requested, "the integration registered no translated entity"
     authored = _authored_entity_keys()
     assert not requested - authored, (

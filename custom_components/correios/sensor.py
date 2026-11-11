@@ -4,18 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.const import Platform
 from homeassistant.core import callback
-from homeassistant.helpers import entity_registry as er
 
-from .const import DOMAIN
+from .package_cleanup import CorreiosPackageCleanup
 from .sensors import (
     CorreiosNextDeliverySensor,
     CorreiosPackageSensor,
     CorreiosPackagesInTransitSensor,
     CorreiosSentPackagesInTransitSensor,
 )
-from .sensors.package_sensor import package_sensor_unique_id
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -40,6 +37,7 @@ async def async_setup_entry(
     )
 
     followed_tracking_codes: set[str] = set()
+    package_cleanup = CorreiosPackageCleanup(hass, entry)
 
     @callback
     def _async_sync_package_sensors() -> None:
@@ -52,22 +50,7 @@ async def async_setup_entry(
             for tracking_code in sorted(new_tracking_codes)
         )
 
-        registry = er.async_get(hass)
-        expected_unique_ids = {
-            package_sensor_unique_id(entry.entry_id, tracking_code)
-            for tracking_code in tracked
-        }
-        package_prefix = package_sensor_unique_id(entry.entry_id, "")
-        for registry_entry in er.async_entries_for_config_entry(
-            registry, entry.entry_id
-        ):
-            if (
-                registry_entry.domain == Platform.SENSOR
-                and registry_entry.platform == DOMAIN
-                and registry_entry.unique_id.startswith(package_prefix)
-                and registry_entry.unique_id not in expected_unique_ids
-            ):
-                registry.async_remove(registry_entry.entity_id)
+        package_cleanup.remove_untracked(tracked)
         followed_tracking_codes.intersection_update(tracked)
 
     _async_sync_package_sensors()

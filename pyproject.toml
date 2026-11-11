@@ -87,6 +87,9 @@ max-complexity = 25
 # As classes de entidade vivem uma por arquivo em um subpacote e se apoiam na
 # entidade base e nos tipos de dados do pacote pai.
 "**/sensors/*.py" = ["TID252"]
+# Os dispositivos vivem um por arquivo em um subpacote e se apoiam nas
+# constantes e nos tipos de dados do pacote pai.
+"**/devices/*.py" = ["TID252"]
 "tests/**" = [
     "S101",     # assert é normal no pytest
     "S105",     # hardcoded-password-string é aceitável em credenciais falsas de teste

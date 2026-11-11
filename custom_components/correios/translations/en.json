@@ -60,9 +60,6 @@
             },
             "next_delivery": {
                 "name": "Next delivery"
-            },
-            "package": {
-                "name": "Package {tracking_code}"
             }
         },
         "event": {
@@ -78,6 +75,11 @@
                     }
                 }
             }
+        }
+    },
+    "device": {
+        "package": {
+            "name": "Package {tracking_code}"
         }
     }
 }

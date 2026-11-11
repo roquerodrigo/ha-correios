@@ -41,7 +41,9 @@ configuração do seu Home Assistant e reinicie o Home Assistant.
 Acesse **Configurações → Dispositivos e serviços → Adicionar integração →
 Correios** e informe o seu usuário e a sua senha. Cada conta vira um dispositivo
 de serviço, nomeado de acordo com a conta (um CPF é mascarado, por exemplo
-`***.456.789-**`).
+`***.456.789-**`), e cada pacote rastreado vira um subdispositivo dela, chamado
+`Pacote <código de rastreamento>`. Um pacote sem área própria fica na área da
+conta.
 
 Opções (**Configurar** na entrada da integração):
 
@@ -60,12 +62,12 @@ reautenticação; as credenciais também podem ser editadas em **Reconfigurar**.
 | `sensor.correios_<account>_packages_in_transit` | Quantidade de pacotes a caminho de você. O atributo `tracking_codes` os lista. |
 | `sensor.correios_<account>_sent_packages_in_transit` | Quantidade de pacotes enviados por você que ainda não foram entregues. O atributo `tracking_codes` os lista. |
 | `sensor.correios_<account>_next_delivery` | Previsão de entrega mais próxima entre os pacotes a caminho de você, como `timestamp` (início do dia previsto) para que a interface a formate conforme o idioma e as preferências do usuário. O atributo `tracking_code` indica qual é o pacote e `expected_delivery` traz a data em ISO. |
-| `sensor.correios_<account>_package_<tracking code>` | Um por pacote rastreado. O estado é o status de rastreamento mais recente informado pelos Correios. |
+| `sensor.correios_<account>_package_<tracking code>` | Um por pacote rastreado, no subdispositivo do pacote. O estado é o status de rastreamento mais recente informado pelos Correios. |
 | `event.correios_<account>_package_update` | Dispara `new_package`, `status_changed` ou `delivered` sempre que uma atualização detecta uma mudança. |
 
-Os sensores de pacote são criados e removidos automaticamente: um pacote ganha
-um sensor quando o site passa a listá-lo e o perde depois de estar entregue por
-mais tempo do que a retenção configurada.
+Os pacotes são criados e removidos automaticamente: um pacote ganha um
+subdispositivo com o seu sensor quando o site passa a listá-lo e o perde depois
+de estar entregue por mais tempo do que a retenção configurada.
 
 ### Atributos do sensor de pacote
 
