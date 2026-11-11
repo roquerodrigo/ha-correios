@@ -13,6 +13,7 @@ from custom_components.correios.const import DOMAIN
 from custom_components.correios.coordinator import MISSING_PACKAGE_GRACE_PERIOD
 from custom_components.correios.sensors import (
     CorreiosNextDeliverySensor,
+    CorreiosPackageExpectedDeliverySensor,
     CorreiosPackageSensor,
     CorreiosPackagesInTransitSensor,
     CorreiosSentPackagesInTransitSensor,
@@ -50,7 +51,7 @@ async def test_platform_creates_account_and_package_sensors(hass, setup_integrat
         .astimezone(dt_util.UTC)
         .isoformat()
     )
-    assert len(hass.states.async_all("sensor")) == 3 + 4
+    assert len(hass.states.async_all("sensor")) == 3 + 4 * 3
 
 
 async def test_package_sensor_state_and_attributes(hass, setup_integration):
@@ -206,3 +207,88 @@ def test_package_sensor_without_its_package_is_unavailable():
     assert sensor.native_value is None
     assert sensor.extra_state_attributes == {}
     assert sensor.unique_id == "eid_package_gone"
+
+
+async def test_package_expected_delivery_sensor(hass, setup_integration):
+    state = hass.states.get(
+        f"sensor.correios_456_789_package_{IN_TRANSIT_CODE.lower()}_expected_delivery"
+    )
+    assert state.state == (
+        dt_util.start_of_local_day(date(2026, 9, 25))
+        .astimezone(dt_util.UTC)
+        .isoformat()
+    )
+    assert state.attributes["friendly_name"] == (
+        f"Package {IN_TRANSIT_CODE} Expected delivery"
+    )
+
+
+async def test_package_without_forecast_has_unknown_expected_delivery(
+    hass, setup_integration
+):
+    state = hass.states.get(
+        f"sensor.correios_456_789_package_{SENT_CODE.lower()}_expected_delivery"
+    )
+    assert state.state == "unknown"
+
+
+async def test_package_tracking_code_sensor(hass, setup_integration):
+    entity_id = (
+        f"sensor.correios_456_789_package_{IN_TRANSIT_CODE.lower()}_tracking_number"
+    )
+    state = hass.states.get(entity_id)
+    assert state.state == IN_TRANSIT_CODE
+    assert (
+        state.attributes["friendly_name"]
+        == f"Package {IN_TRANSIT_CODE} Tracking number"
+    )
+    assert er.async_get(hass).async_get(entity_id).entity_category == "diagnostic"
+
+
+async def test_package_sensors_share_the_package_device(hass, setup_integration):
+    registry = er.async_get(hass)
+    device = dr.async_get(hass).async_get_child_device_by_identifier(
+        (DOMAIN, IN_TRANSIT_CODE), setup_integration.entry_id
+    )
+    unique_ids = {
+        entity.unique_id for entity in er.async_entries_for_device(registry, device.id)
+    }
+    prefix = f"{setup_integration.entry_id}_package_{IN_TRANSIT_CODE.lower()}"
+    assert unique_ids == {
+        prefix,
+        f"{prefix}_expected_delivery",
+        f"{prefix}_tracking_code",
+    }
+
+
+async def test_package_beyond_grace_period_loses_all_its_sensors(
+    hass, setup_integration, mock_api_client, packages
+):
+    shrunk = {
+        code: package for code, package in packages.items() if code != DELIVERED_CODE
+    }
+    mock_api_client.async_get_packages.return_value = shrunk
+    await _refresh(hass, setup_integration)
+    coordinator = setup_integration.runtime_data.coordinator
+    coordinator._missing_since = dict.fromkeys(
+        coordinator._missing_since,
+        dt_util.utcnow() - MISSING_PACKAGE_GRACE_PERIOD - timedelta(seconds=1),
+    )
+    await _refresh(hass, setup_integration)
+    prefix = f"{setup_integration.entry_id}_package_{DELIVERED_CODE.lower()}"
+    assert not [
+        entity
+        for entity in er.async_entries_for_config_entry(
+            er.async_get(hass), setup_integration.entry_id
+        )
+        if entity.unique_id.startswith(prefix)
+    ]
+
+
+def test_package_expected_delivery_without_its_package_is_unavailable():
+    sensor = CorreiosPackageExpectedDeliverySensor(
+        coordinator=_coordinator({}), tracking_code="GONE"
+    )
+    assert sensor.available is False
+    assert sensor.native_value is None
+    assert sensor.unique_id == "eid_package_gone_expected_delivery"

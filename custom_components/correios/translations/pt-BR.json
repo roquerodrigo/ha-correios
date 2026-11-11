@@ -60,6 +60,12 @@
             },
             "next_delivery": {
                 "name": "Próxima entrega"
+            },
+            "package_expected_delivery": {
+                "name": "Previsão de entrega"
+            },
+            "package_tracking_code": {
+                "name": "Número de rastreio"
             }
         },
         "event": {

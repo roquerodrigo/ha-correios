@@ -63,10 +63,12 @@ reautenticação; as credenciais também podem ser editadas em **Reconfigurar**.
 | `sensor.correios_<account>_sent_packages_in_transit` | Quantidade de pacotes enviados por você que ainda não foram entregues. O atributo `tracking_codes` os lista. |
 | `sensor.correios_<account>_next_delivery` | Previsão de entrega mais próxima entre os pacotes a caminho de você, como `timestamp` (início do dia previsto) para que a interface a formate conforme o idioma e as preferências do usuário. O atributo `tracking_code` indica qual é o pacote e `expected_delivery` traz a data em ISO. |
 | `sensor.correios_<account>_package_<tracking code>` | Um por pacote rastreado, no subdispositivo do pacote. O estado é o status de rastreamento mais recente informado pelos Correios. |
+| `sensor.correios_<account>_package_<tracking code>_expected_delivery` | Previsão de entrega do pacote, como `timestamp` (início do dia previsto); fica desconhecida quando os Correios não informam a data. |
+| `sensor.correios_<account>_package_<tracking code>_tracking_number` | Número de rastreio do pacote, como entidade de diagnóstico. |
 | `event.correios_<account>_package_update` | Dispara `new_package`, `status_changed` ou `delivered` sempre que uma atualização detecta uma mudança. |
 
 Os pacotes são criados e removidos automaticamente: um pacote ganha um
-subdispositivo com o seu sensor quando o site passa a listá-lo e o perde depois
+subdispositivo com os seus sensores quando o site passa a listá-lo e o perde depois
 de estar entregue por mais tempo do que a retenção configurada.
 
 ### Atributos do sensor de pacote

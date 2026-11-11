@@ -9,9 +9,17 @@ from homeassistant.core import callback
 from .package_cleanup import CorreiosPackageCleanup
 from .sensors import (
     CorreiosNextDeliverySensor,
+    CorreiosPackageExpectedDeliverySensor,
     CorreiosPackageSensor,
     CorreiosPackagesInTransitSensor,
+    CorreiosPackageTrackingCodeSensor,
     CorreiosSentPackagesInTransitSensor,
+)
+
+PACKAGE_SENSOR_CLASSES = (
+    CorreiosPackageSensor,
+    CorreiosPackageExpectedDeliverySensor,
+    CorreiosPackageTrackingCodeSensor,
 )
 
 if TYPE_CHECKING:
@@ -26,7 +34,7 @@ async def async_setup_entry(
     entry: CorreiosConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Configura os sensores da conta e mantém um sensor por pacote rastreado."""
+    """Configura os sensores da conta e mantém os sensores de cada pacote rastreado."""
     coordinator = entry.runtime_data.coordinator
     async_add_entities(
         [
@@ -46,8 +54,9 @@ async def async_setup_entry(
         new_tracking_codes = tracked - followed_tracking_codes
         followed_tracking_codes.update(new_tracking_codes)
         async_add_entities(
-            CorreiosPackageSensor(coordinator=coordinator, tracking_code=tracking_code)
+            sensor_class(coordinator=coordinator, tracking_code=tracking_code)
             for tracking_code in sorted(new_tracking_codes)
+            for sensor_class in PACKAGE_SENSOR_CLASSES
         )
 
         package_cleanup.remove_untracked(tracked)
