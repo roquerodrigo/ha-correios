@@ -8,7 +8,7 @@ async def test_setup_entry_loads_successfully(hass, setup_integration):
 
 
 async def test_setup_entry_creates_entities(hass, setup_integration):
-    assert len(hass.states.async_all("sensor")) == 7
+    assert len(hass.states.async_all("sensor")) == 3 + 4 * 3
     assert len(hass.states.async_all("event")) == 1
 
 
@@ -105,7 +105,7 @@ async def test_scan_interval_picks_up_options(
     from datetime import timedelta
 
     assert entry.runtime_data.coordinator.update_interval == timedelta(seconds=600)
-    assert len(hass.states.async_all("sensor")) == 6
+    assert len(hass.states.async_all("sensor")) == 3 + 3 * 3
 
 
 async def test_remove_device_refuses_the_device_the_entry_provides(

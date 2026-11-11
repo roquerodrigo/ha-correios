@@ -12,6 +12,12 @@
             },
             "package": {
                 "default": "mdi:package-variant-closed"
+            },
+            "package_expected_delivery": {
+                "default": "mdi:calendar-clock"
+            },
+            "package_tracking_code": {
+                "default": "mdi:barcode"
             }
         },
         "event": {

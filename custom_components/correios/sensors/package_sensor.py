@@ -6,23 +6,14 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
 
-from ..devices import CorreiosPackageDevice
-from ..entity import CorreiosEntity
+from ..package_entity import CorreiosPackageEntity
 
 if TYPE_CHECKING:
-    from homeassistant.helpers.device_registry import ChildDeviceInfo
-
-    from ..coordinator import CorreiosDataUpdateCoordinator
-    from ..data import CorreiosPackage, CorreiosPackageEvent
+    from ..data import CorreiosPackageEvent
 
 type PackageAttribute = str | bool | list[dict[str, str | None]] | None
 
 MAX_STATE_LENGTH = 255
-
-
-def package_sensor_unique_id(entry_id: str, tracking_code: str) -> str:
-    """Retorna o unique id do sensor que acompanha ``tracking_code``."""
-    return f"{entry_id}_package_{tracking_code.lower()}"
 
 
 def _event_attributes(event: CorreiosPackageEvent) -> dict[str, str | None]:
@@ -37,46 +28,12 @@ def _event_attributes(event: CorreiosPackageEvent) -> dict[str, str | None]:
     }
 
 
-class CorreiosPackageSensor(CorreiosEntity, SensorEntity):
+class CorreiosPackageSensor(CorreiosPackageEntity, SensorEntity):
     """Status de rastreamento mais recente de um pacote, no subdispositivo dele."""
 
     _attr_name = None
     _attr_translation_key = "package"
     _unrecorded_attributes = frozenset({"events"})
-
-    def __init__(
-        self,
-        coordinator: CorreiosDataUpdateCoordinator,
-        tracking_code: str,
-    ) -> None:
-        """Inicializa."""
-        super().__init__(coordinator)
-        self._tracking_code = tracking_code
-
-    @property
-    def unique_id(self) -> str:
-        """Retorna um unique id derivado do id da entry e do código de rastreamento."""
-        return package_sensor_unique_id(
-            self.coordinator.config_entry.entry_id, self._tracking_code
-        )
-
-    @property
-    def device_info(self) -> ChildDeviceInfo:
-        """Retorna o pacote como subdispositivo do dispositivo da conta."""
-        return CorreiosPackageDevice(
-            self._tracking_code,
-            self.coordinator.config_entry.runtime_data.account_device_id,
-        ).info
-
-    @property
-    def package(self) -> CorreiosPackage | None:
-        """Retorna o pacote que este sensor acompanha, enquanto ele for rastreado."""
-        return self.packages.get(self._tracking_code)
-
-    @property
-    def available(self) -> bool:
-        """Fica indisponível quando o pacote deixa de ser rastreado."""
-        return super().available and self.package is not None
 
     @property
     def native_value(self) -> str | None:

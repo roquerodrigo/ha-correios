@@ -10,7 +10,7 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
 from .devices import CorreiosPackageDevice
-from .sensors.package_sensor import package_sensor_unique_id
+from .package_entity import package_entity_unique_id
 
 if TYPE_CHECKING:
     from collections.abc import Set as AbstractSet
@@ -24,9 +24,11 @@ class CorreiosPackageCleanup:
     """
     Remove os subdispositivos e os sensores dos pacotes que saíram do payload.
 
-    Excluir o subdispositivo também exclui o sensor dele. Os sensores sem
+    Excluir o subdispositivo também exclui os sensores dele. Os sensores sem
     subdispositivo são de versões anteriores, que os criavam no dispositivo da
-    conta, e de um pacote que saiu da listagem antes da atualização.
+    conta, e de um pacote que saiu da listagem antes da atualização. O pacote
+    de um sensor é o trecho do unique id que segue o prefixo, até o próximo
+    ``_``, porque um código de rastreamento não tem ``_``.
     """
 
     def __init__(self, hass: HomeAssistant, entry: CorreiosConfigEntry) -> None:
@@ -53,11 +55,8 @@ class CorreiosPackageCleanup:
 
     def _remove_untracked_sensors(self, tracked_codes: AbstractSet[str]) -> None:
         registry = er.async_get(self._hass)
-        expected_unique_ids = {
-            package_sensor_unique_id(self._entry.entry_id, tracking_code)
-            for tracking_code in tracked_codes
-        }
-        package_prefix = package_sensor_unique_id(self._entry.entry_id, "")
+        tracked = {tracking_code.lower() for tracking_code in tracked_codes}
+        package_prefix = package_entity_unique_id(self._entry.entry_id, "")
         for registry_entry in er.async_entries_for_config_entry(
             registry, self._entry.entry_id
         ):
@@ -65,6 +64,7 @@ class CorreiosPackageCleanup:
                 registry_entry.domain == Platform.SENSOR
                 and registry_entry.platform == DOMAIN
                 and registry_entry.unique_id.startswith(package_prefix)
-                and registry_entry.unique_id not in expected_unique_ids
+                and registry_entry.unique_id.removeprefix(package_prefix).split("_")[0]
+                not in tracked
             ):
                 registry.async_remove(registry_entry.entity_id)
