@@ -20,7 +20,7 @@ você enviou.
 
 - Uma conta dos Correios (o mesmo usuário e a mesma senha usados no site e no
   aplicativo dos Correios). O usuário pode ser um CPF, um CNPJ ou um idCorreios.
-- Home Assistant 2026.7.2 ou mais recente.
+- Home Assistant 2026.10.4 ou mais recente.
 
 ## Instalação
 
