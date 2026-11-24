@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1](https://github.com/roquerodrigo/ha-correios/compare/v1.2.0...v1.2.1) (2026-11-24)
+
+### Correções
+
+- O diagnóstico baixado deixou de expor o título da entrada, derivado do login da conta (CPF parcial, CNPJ ou e-mail); agora ele aparece redigido. ([#41](https://github.com/roquerodrigo/ha-correios/pull/41))
+
 ## [1.2.0](https://github.com/roquerodrigo/ha-correios/compare/v1.1.0...v1.2.0) (2026-11-11)
 
 Cada pacote rastreado passa a ser um subdispositivo da conta, com novos sensores de previsão de entrega e de número de rastreio, e a versão mínima do Home Assistant sobe para 2026.10.4.
