@@ -46,7 +46,7 @@ Brasil, e por isso o idioma do repositório é o **português do Brasil**.
   submódulo e um `__init__.py` reexportando os símbolos públicos.
   - Exemplo: `exceptions/` contém `api_client_error.py`,
     `api_client_communication_error.py`, `api_client_authentication_error.py`,
-    além do `__init__.py`.
+    `api_client_listing_expired_error.py`, além do `__init__.py`.
   - Exemplo: `data/` contém `package.py`, `package_event.py`,
     `config_data.py`, `options_data.py`, `diagnostics_entry.py`,
     `diagnostics_payload.py`, `runtime.py` e outros, além de um
@@ -65,7 +65,8 @@ Brasil, e por isso o idioma do repositório é o **português do Brasil**.
 - **Funções auxiliares** podem viver no mesmo arquivo da única classe que as usa
   (por exemplo, `_verify_response_or_raise` em `api.py`).
 - **O `__init__.py` do pacote da integração** conecta `async_setup_entry`,
-  `async_unload_entry`, `async_reload_entry` e nada mais.
+  `async_unload_entry`, `async_remove_entry`, `async_reload_entry` e
+  `async_remove_config_entry_device`, e nada mais.
 
 ## Entidades: uma classe por entidade
 
@@ -212,13 +213,12 @@ estreitamento deliberado — veja o `config_flow.py` para o exemplo canônico.
 
 - Formato: `"Failed to <verb> <object>: <cause>"`, em que `<cause>` é a exceção
   ou um motivo curto. Mantenha-as curtas e fáceis de localizar com grep.
-- Valide as entradas antes da chamada de rede, para que os erros voltados ao
-  usuário apontem para a entrada inválida, e não para um traceback posterior
-  (`config_flow._validate` rejeita credenciais malformadas antes de contatar a
-  API).
+- Normalize as entradas antes da chamada de rede, para que os erros voltados
+  ao usuário apontem para a entrada, e não para um traceback posterior (o
+  `config_flow` remove os espaços do usuário antes de contatar a API).
 - As exceções próprias seguem a mesma hierarquia:
   `CorreiosApiClientError` (base) → `…CommunicationError` (timeout, conexão,
-  DNS) e `…AuthenticationError` (401/403). Encapsule os erros crus do upstream
+  DNS) e `…AuthenticationError` (HTTP 401 do formulário de login). Encapsule os erros crus do upstream
   na fronteira do cliente da API; tudo acima dele captura apenas a hierarquia
   própria.
 
@@ -303,8 +303,9 @@ precisam ficar verdes:
   "Idioma").
 - Os assets de marca ficam em `custom_components/<domain>/brand/` — `icon.png`,
   `logo.png` (+ variantes `@2x`), com a marca dos Correios.
-- Um `README.md` na raiz do repositório é obrigatório; o HACS o exibe como a
-  descrição da integração. O cabeçalho dele segue o layout abaixo.
+- Um `README.md` na raiz do repositório é obrigatório; o Marketplace e o HACS
+  o exibem como a descrição da integração. O cabeçalho dele segue o layout
+  abaixo.
 
 O [release-autopilot](https://github.com/roquerodrigo/release-autopilot) cria a
 tag dos releases a cada merge do pull request de release na `main`; o HACS exibe
@@ -313,39 +314,37 @@ changelog fácil de localizar com grep.
 
 ## Cabeçalho do README
 
-Todo repositório abre o `README.md` com o mesmo cabeçalho, exatamente nesta
-ordem: **título → badges → link do HACS → separador `---` → o restante do
-documento.**
+O `README.md` é lido no GitHub e na página do repositório no Marketplace do
+Home Assistant. Ele abre com o título e, logo abaixo, os badges e o botão do
+Marketplace, entre os marcadores que escondem o bloco no Marketplace:
 
 ```markdown
 # <Título>
 
+<!-- ha-marketplace:exclude-start -->
 [![CI](https://github.com/roquerodrigo/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/roquerodrigo/<repo>/actions/workflows/ci.yml)
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![GitHub release](https://img.shields.io/github/v/release/roquerodrigo/<repo>)](https://github.com/roquerodrigo/<repo>/releases/latest)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/roquerodrigo)
 
-[![Open your Home Assistant instance and open the repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=roquerodrigo&repository=<repo>&category=integration)
-
----
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=roquerodrigo&repository=<repo>&category=integration)
+<!-- ha-marketplace:exclude-end -->
 ```
 
 - `owner=` é sempre `roquerodrigo`; `repository=` é o nome do repositório.
 - `category=integration` para uma integração; `category=plugin` para um
   repositório de card do Lovelace.
-- O link do HACS é um parágrafo próprio, separado do bloco de badges por uma
-  linha em branco. A linha de badges e o botão "Open your Home Assistant
-  instance" são coisas diferentes e não podem ficar juntos.
-- Preserve os badges que o repositório já tem e não invente novos; todos eles
-  ficam **antes** do link do HACS.
-- O `---` logo após o link do HACS é o separador do cabeçalho. Um README que já
-  usa `---` mais abaixo os mantém como quebras de seção — não adicione um
-  segundo separador ao cabeçalho.
+- O redirecionamento `hacs_repository` abre o HACS antes do Home Assistant
+  2026.11 e o Marketplace a partir dele, então o botão serve às duas versões.
+- Não há separador `---` depois do cabeçalho.
+- As seções Instalação, Contribuindo e Licença também ficam entre os
+  marcadores, porque só fazem sentido no GitHub. Como os títulos não ganham
+  âncoras no Marketplace, o texto visível nunca depende de um link `#âncora`.
 
-**Um repositório privado não recebe o link do HACS.** O `my.home-assistant.io`
-resolve o destino pela API pública do GitHub, então, em um repositório privado,
-o botão cai em algo que o HACS não consegue instalar. É o mesmo motivo pelo qual
-as checagens de catálogo pulam esses repositórios. Entregue o
-título, os badges e o separador, e adicione o link quando — e somente quando — o
-repositório se tornar público.
+**Um repositório privado não recebe o botão do Marketplace.** O
+`my.home-assistant.io` resolve o destino pela API pública do GitHub, então, em
+um repositório privado, o botão cai em algo que não pode ser instalado. É o
+mesmo motivo pelo qual as checagens de catálogo pulam esses repositórios.
+Adicione o botão quando, e somente quando, o repositório se tornar público.
 
 ## Quality scale
 
@@ -405,9 +404,11 @@ notas da release e o `CHANGELOG.md`:
 - A configuração do mypy fica no `pyproject.toml` (`[tool.mypy]`). Execute os
   dois com `uv run ruff check .` e `uv run mypy custom_components/correios`.
 - Após cada alteração, execute `uv run ruff format --check .`,
-  `uv run ruff check .`, `uv run mypy custom_components/correios` e
-  `uv run pytest`. Os dois gates espelham o CI. O `scripts/lint` é um wrapper
-  fino que apenas encadeia esses quatro comandos — executá-lo ou executar os
+  `uv run ruff check .`, `uv run mypy custom_components/correios`,
+  `uv run pytest` e
+  `node --check custom_components/correios/www/correios-card.js`. Os gates
+  espelham o CI. O `scripts/lint` é um wrapper fino que apenas encadeia esses
+  cinco comandos — executá-lo ou executar os
   comandos diretamente dá no mesmo; o wrapper existe para que CI, documentação e
   hábitos locais compartilhem uma única fonte da verdade.
 - Os testes ficam em `tests/`, espelhando o layout de produção. O gate de

@@ -1,59 +1,71 @@
-# Diretrizes de contribuição
+# Contribuindo
 
-Contribuir com este projeto deve ser o mais fácil e transparente possível, seja para:
+Relatos de bug, ideias e pull requests são bem-vindos.
 
-- Reportar um bug
-- Discutir o estado atual do código
-- Enviar uma correção
-- Propor novas funcionalidades
+## Relatando um bug
 
-## O GitHub é usado para tudo
+Abra uma [issue](https://github.com/roquerodrigo/ha-correios/issues/new/choose)
+com:
 
-O GitHub é usado para hospedar o código, acompanhar issues e pedidos de funcionalidade e receber pull requests.
+- a versão do Home Assistant e a versão da integração;
+- o que você fez, o que esperava e o que aconteceu;
+- os diagnósticos baixados no menu da integração (o usuário, a senha e os
+  códigos de rastreamento são removidos) e as linhas relevantes do log.
 
-Pull requests são a melhor forma de propor mudanças no código.
+## Ambiente de desenvolvimento
 
-1. Faça um fork do repositório e crie a sua branch a partir da `main`.
-2. Se você alterou algo, atualize a documentação.
-3. Garanta que o código passa no lint (execute `uv run ruff format --check .`, `uv run ruff check .` e `uv run mypy custom_components/correios`).
-4. Teste a sua contribuição.
-5. Abra o pull request!
+O projeto usa o [uv](https://docs.astral.sh/uv/) e o Node.js, este só para
+conferir a sintaxe do card.
+
+```bash
+scripts/setup      # instala as dependências no .venv
+scripts/develop    # executa o Home Assistant em http://localhost:8123 com esta integração carregada
+```
+
+O `scripts/develop` usa a configuração em [`config/`](config/), com log de
+depuração para a integração.
+
+## Verificações
+
+Execute-as antes de abrir um pull request. O CI executa as mesmas, e o
+`scripts/lint` executa todas em sequência. Depois de `pre-commit install`, as
+três primeiras rodam a cada commit.
+
+```bash
+uv run ruff format .                                          # formatação
+uv run ruff check . --fix                                     # lint
+uv run mypy custom_components/correios                        # tipos
+uv run pytest                                                 # testes, a cobertura precisa ficar em 90 % ou mais
+node --check custom_components/correios/www/correios-card.js  # sintaxe do card
+```
+
+Leia o [CODE_STYLE.md](CODE_STYLE.md) antes de adicionar ou reestruturar
+código.
 
 ## Idioma
 
-O idioma do repositório é o **português do Brasil**: documentação, docstrings, comentários, mensagens de commit, pull requests e issues. O código (identificadores, nomes de arquivo e de branch, mensagens de log, tipo e escopo do Conventional Commit) fica em inglês, e os termos nativos do domínio (CPF, CNPJ, CEP, idCorreios) nunca são traduzidos. A regra completa está na seção "Idioma" do [`CODE_STYLE.md`](./CODE_STYLE.md).
+O repositório é escrito em português do Brasil: documentação, docstrings,
+comentários, mensagens de commit, pull requests e issues. O código fica em
+inglês (identificadores, nomes de arquivo e de branch, mensagens de log, tipo e
+escopo do Conventional Commit), e os termos do domínio (CPF, CNPJ, CEP,
+idCorreios) não são traduzidos. A regra completa está na seção "Idioma" do
+[CODE_STYLE.md](CODE_STYLE.md).
 
-## Toda contribuição fica sob a licença MIT
+## Pull requests
 
-Em resumo, ao enviar alterações de código, entende-se que elas ficam sob a mesma [licença MIT](http://choosealicense.com/licenses/mit/) que cobre o projeto. Entre em contato com os mantenedores se isso for uma preocupação.
-
-## Reporte bugs pelas [issues](../../issues) do GitHub
-
-As issues do GitHub são usadas para acompanhar os bugs públicos.
-Reporte um bug [abrindo uma nova issue](../../issues/new/choose); é simples assim!
-
-## Escreva relatos de bug com detalhes, contexto e código de exemplo
-
-**Bons relatos de bug** costumam ter:
-
-- Um resumo rápido e/ou o contexto
-- Passos para reproduzir
-  - Seja específico!
-  - Forneça código de exemplo, se puder.
-- O que você esperava que acontecesse
-- O que acontece de fato
-- Observações (incluindo, se possível, por que você acha que isso acontece ou o que você tentou e não funcionou)
-
-## Use um estilo de código consistente
-
-O projeto usa o [ruff](https://docs.astral.sh/ruff/) (configuração no `pyproject.toml`). Execute `uv run ruff format --check .`, `uv run ruff check .` e `uv run mypy custom_components/correios` antes de enviar um PR.
-
-## Teste a sua alteração
-
-Este projeto é baseado no [ha-integration-blueprint](https://github.com/roquerodrigo/ha-integration-blueprint).
-
-Execute `scripts/setup` uma vez para criar o ambiente virtual gerenciado pelo `uv` e, em seguida, `scripts/develop` para iniciar uma instância independente do Home Assistant em modo debug, com a integração carregada e o arquivo [`configuration.yaml`](./config/configuration.yaml) incluído.
+1. Faça um fork do repositório e crie a sua branch a partir da `main`.
+2. Escreva as mensagens de commit no formato
+   [Conventional Commits](https://www.conventionalcommits.org/), por exemplo
+   `fix(sensor): corrige a previsão de entrega`. As releases e as notas delas
+   são geradas a partir desses commits. Marque as mudanças que quebram
+   compatibilidade com `!` ou com o rodapé `BREAKING CHANGE:`.
+3. Atualize `translations/en.json` e `translations/pt-BR.json` juntos quando
+   mudar textos exibidos ao usuário. As traduções do card ficam no próprio
+   `www/correios-card.js`.
+4. Atualize o README quando o comportamento, a configuração, as entidades ou o
+   card mudarem.
+5. Preencha o template de pull request.
 
 ## Licença
 
-Ao contribuir, você concorda que as suas contribuições serão licenciadas sob a licença MIT do projeto.
+As contribuições são publicadas sob a [licença MIT](LICENSE) do projeto.
