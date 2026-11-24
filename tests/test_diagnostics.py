@@ -19,7 +19,7 @@ async def test_diagnostics_includes_entry_metadata(hass, setup_integration):
     diag = await async_get_config_entry_diagnostics(hass, setup_integration)
     assert diag["entry"]["domain"] == "correios"
     assert diag["entry"]["version"] == 1
-    assert "title" in diag["entry"]
+    assert diag["entry"]["title"] == "**REDACTED**"
 
 
 async def test_diagnostics_lists_packages_without_tracking_codes(
