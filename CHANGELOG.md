@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/roquerodrigo/ha-correios/compare/v1.2.1...v1.3.0) (2026-11-25)
+
+O card de pacotes foi redesenhado com os componentes nativos do Home Assistant e a linha do tempo do histórico foi corrigida.
+
+### Melhorias
+
+- O card de pacotes passa a usar os componentes nativos do Home Assistant, acompanhando o visual e o tema ativo, com retorno ao toque e navegação pelo teclado em cada pacote. ([#48](https://github.com/roquerodrigo/ha-correios/pull/48))
+
+### Correções
+
+- Na linha do tempo do histórico do card, o traço que liga os eventos não aparece mais por dentro dos círculos em temas com divisória translúcida. ([#48](https://github.com/roquerodrigo/ha-correios/pull/48))
+
 ## [1.2.1](https://github.com/roquerodrigo/ha-correios/compare/v1.2.0...v1.2.1) (2026-11-24)
 
 ### Correções
