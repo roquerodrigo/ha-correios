@@ -14,6 +14,8 @@ está, quando ele deve chegar e pode ser avisado quando ele se movimenta. Os
 dados vêm do site de rastreamento dos Correios, acessado com a mesma conta
 que você usa no site e no aplicativo.
 
+![Card com os pacotes em trânsito, o histórico de rastreamento de um deles e um pacote entregue](images/dashboard.png)
+
 ## Recursos
 
 - Veja os pacotes que estão vindo para você e os que você enviou, logo que
