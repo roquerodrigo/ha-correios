@@ -465,8 +465,9 @@ class CorreiosCard extends HTMLElement {
       .timeline li::before {
         content: ""; position: absolute; z-index: 1; box-sizing: border-box;
         left: 0; top: 5px; width: 10px; height: 10px; border-radius: 50%;
-        background: var(--divider-color);
-        box-shadow: 0 0 0 3px var(--ha-card-background, var(--card-background-color, transparent));
+        --card-surface: var(--ha-card-background, var(--card-background-color, #fff));
+        background: linear-gradient(var(--divider-color), var(--divider-color)), var(--card-surface);
+        box-shadow: 0 0 0 3px var(--card-surface);
       }
       .timeline li::after {
         content: ""; position: absolute; left: 4px; top: 10px; bottom: -10px;
