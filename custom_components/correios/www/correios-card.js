@@ -148,7 +148,7 @@ class CorreiosCard extends HTMLElement {
   }
 
   static getStubConfig() {
-    return { type: `custom:${CARD_TYPE}` };
+    return {};
   }
 
   setConfig(config) {
@@ -256,11 +256,11 @@ class CorreiosCard extends HTMLElement {
       <style>${CorreiosCard.styles}</style>
       <ha-card>
         <div class="header">
-          <ha-icon icon="mdi:package-variant"></ha-icon>
-          <div class="heading">
-            <div class="title">${escapeHtml(this._config.title ?? localize(this._hass, "card.title"))}</div>
-            <div class="summary">${escapeHtml(summary.join(" · "))}</div>
-          </div>
+          <ha-tile-icon icon="mdi:package-variant"></ha-tile-icon>
+          <ha-tile-info
+            primary="${escapeHtml(this._config.title ?? localize(this._hass, "card.title"))}"
+            secondary="${escapeHtml(summary.join(" · "))}"
+          ></ha-tile-info>
         </div>
         ${
           packages.length === 0
@@ -269,32 +269,35 @@ class CorreiosCard extends HTMLElement {
         }
       </ha-card>`;
 
-    this.shadowRoot.querySelectorAll(".package-summary").forEach((element) =>
-      element.addEventListener("click", () => this._toggle(element.dataset.id)),
-    );
+    this.shadowRoot.querySelectorAll(".package-summary").forEach((element) => {
+      element.addEventListener("click", () => this._toggle(element.dataset.id));
+      element.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        this._toggle(element.dataset.id);
+      });
+    });
     this.shadowRoot.querySelectorAll(".details").forEach((element) =>
       element.addEventListener("click", (event) => {
         event.stopPropagation();
-        this.dispatchEvent(
-          new CustomEvent("hass-more-info", {
-            detail: { entityId: element.dataset.id },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+        this._showMoreInfo(element.dataset.id);
+      }),
+    );
+  }
+
+  _showMoreInfo(entityId) {
+    this.dispatchEvent(
+      new CustomEvent("hass-more-info", {
+        detail: { entityId },
+        bubbles: true,
+        composed: true,
       }),
     );
   }
 
   _toggle(entityId) {
     if (!this._config.show_history) {
-      this.dispatchEvent(
-        new CustomEvent("hass-more-info", {
-          detail: { entityId },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      this._showMoreInfo(entityId);
       return;
     }
     if (this._expanded.has(entityId)) this._expanded.delete(entityId);
@@ -308,31 +311,38 @@ class CorreiosCard extends HTMLElement {
     const name = parcel.customName ?? parcel.trackingCode;
     const badges = [];
     if (parcel.delayed && !parcel.delivered) {
-      badges.push(`<span class="badge delayed">${escapeHtml(localize(hass, "card.delayed"))}</span>`);
+      badges.push(
+        `<ha-badge class="delayed"><ha-icon slot="icon" icon="mdi:clock-alert-outline"></ha-icon>${escapeHtml(localize(hass, "card.delayed"))}</ha-badge>`,
+      );
     }
     if (parcel.sent) {
-      badges.push(`<span class="badge">${escapeHtml(localize(hass, "card.sent"))}</span>`);
+      badges.push(
+        `<ha-badge><ha-icon slot="icon" icon="mdi:arrow-up"></ha-icon>${escapeHtml(localize(hass, "card.sent"))}</ha-badge>`,
+      );
     }
     const route = parcel.delivered ? [] : routeLines(hass, parcel.place, parcel.destinationPlace);
     const facts = [formatShortDateTime(hass, parcel.lastEventAt)].filter(Boolean);
     if (parcel.delivered && parcel.place) facts.unshift(parcel.place);
     if (parcel.customName) facts.unshift(parcel.trackingCode);
+    const lines = [parcel.status, ...route, facts.join(" · ")].filter(Boolean);
 
     return `
       <div class="package ${packageTone(parcel)}">
-        <div class="package-summary" data-id="${escapeHtml(parcel.entityId)}">
-          <div class="bubble"><ha-icon icon="${packageIcon(parcel)}"></ha-icon></div>
-          <div class="body">
-            <div class="row">
-              <span class="name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
-              ${badges.join("")}
+        <div
+          class="package-summary"
+          data-id="${escapeHtml(parcel.entityId)}"
+          role="button"
+          tabindex="0"
+          ${this._config.show_history ? `aria-expanded="${expanded}"` : ""}
+        >
+          <ha-ripple></ha-ripple>
+          <ha-tile-icon icon="${packageIcon(parcel)}"></ha-tile-icon>
+          <ha-tile-info>
+            <span slot="primary" class="name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+            <div slot="secondary" class="lines">
+              ${lines.map((line) => `<div title="${escapeHtml(line)}">${escapeHtml(line)}</div>`).join("")}
             </div>
-            <div class="status" title="${escapeHtml(parcel.status)}">${escapeHtml(parcel.status)}</div>
-            ${route
-              .map((line) => `<div class="route" title="${escapeHtml(line)}">${escapeHtml(line)}</div>`)
-              .join("")}
-            <div class="facts" title="${escapeHtml(facts.join(" · "))}">${escapeHtml(facts.join(" · "))}</div>
-          </div>
+          </ha-tile-info>
           ${
             parcel.expectedDelivery && !parcel.delivered
               ? `<div class="expected">
@@ -347,6 +357,7 @@ class CorreiosCard extends HTMLElement {
               : ""
           }
         </div>
+        ${badges.length ? `<div class="badges">${badges.join("")}</div>` : ""}
         ${expanded ? this._renderHistory(parcel) : ""}
       </div>`;
   }
@@ -376,53 +387,81 @@ class CorreiosCard extends HTMLElement {
             })
             .join("")}
         </ol>
-        <button class="details" data-id="${escapeHtml(parcel.entityId)}">
+        <ha-button class="details" appearance="plain" size="s" data-id="${escapeHtml(parcel.entityId)}">
           ${escapeHtml(localize(hass, "card.details"))}
-        </button>
+        </ha-button>
       </div>`;
   }
 
   static get styles() {
     return `
-      ha-card { padding: 16px; }
-      .header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-      .header > ha-icon { color: var(--primary-color); }
-      .title { font-size: 1.2em; font-weight: 500; color: var(--primary-text-color); }
-      .summary, .route, .facts, .event-facts, .category, .expected-label {
-        font-size: 0.85em; color: var(--secondary-text-color);
+      ha-card { padding: var(--ha-space-2, 8px) var(--ha-space-2, 8px) var(--ha-space-1, 4px); }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: var(--ha-space-3, 12px);
+        padding: var(--ha-space-2, 8px);
       }
-      .empty { padding: 16px 0 8px; color: var(--secondary-text-color); text-align: center; }
+      .header ha-tile-icon { --tile-icon-color: var(--primary-color); }
+      .header ha-tile-info {
+        --ha-tile-info-primary-font-size: var(--ha-font-size-l, 16px);
+        --ha-tile-info-secondary-color: var(--secondary-text-color);
+      }
+      ha-tile-info { flex: 1; min-width: 0; }
+      .empty {
+        padding: var(--ha-space-4, 16px) var(--ha-space-2, 8px) var(--ha-space-3, 12px);
+        color: var(--secondary-text-color);
+        text-align: center;
+      }
       .packages { display: flex; flex-direction: column; }
       .package + .package { border-top: 1px solid var(--divider-color); }
-      .package-summary {
-        display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer;
-      }
-      .bubble {
-        flex: none; display: flex; align-items: center; justify-content: center;
-        width: 40px; height: 40px; border-radius: 50%;
-        color: var(--tone); background: color-mix(in srgb, var(--tone) 18%, transparent);
-      }
       .transit { --tone: var(--primary-color); }
       .delivered { --tone: var(--success-color); }
       .delayed { --tone: var(--warning-color); }
-      .body { flex: 1; min-width: 0; }
-      .row { display: flex; align-items: center; gap: 8px; min-width: 0; }
-      .name { font-weight: 500; color: var(--primary-text-color); letter-spacing: 0.02em; }
-      .name, .status, .route, .facts { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .status { color: var(--primary-text-color); font-size: 0.95em; }
-      .badge {
-        flex: none; font-size: 0.7em; padding: 1px 8px; border-radius: 10px;
-        color: var(--secondary-text-color); border: 1px solid var(--divider-color);
+      .package-summary {
+        --ha-ripple-color: var(--tone);
+        --ha-ripple-hover-opacity: 0.04;
+        --ha-ripple-pressed-opacity: 0.12;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: var(--ha-space-3, 12px);
+        padding: var(--ha-space-3, 12px) var(--ha-space-2, 8px);
+        border-radius: var(--ha-border-radius-lg, 12px);
+        cursor: pointer;
+        outline: none;
       }
-      .badge.delayed { color: var(--warning-color); border-color: var(--warning-color); }
+      .package-summary:focus-visible { box-shadow: 0 0 0 2px var(--tone); }
+      .package-summary ha-tile-icon { --tile-icon-color: var(--tone); }
+      .name { letter-spacing: 0.02em; }
+      .lines { display: flex; flex-direction: column; min-width: 0; }
+      .lines div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lines div + div { color: var(--secondary-text-color); }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ha-space-2, 8px);
+        padding: 0 var(--ha-space-2, 8px) var(--ha-space-3, 12px) 56px;
+        --ha-badge-size: 24px;
+        --ha-badge-icon-size: 14px;
+      }
+      ha-badge.delayed { --badge-color: var(--warning-color); }
       .expected { flex: none; display: flex; flex-direction: column; align-items: flex-end; }
-      .expected-date { font-weight: 500; color: var(--primary-text-color); white-space: nowrap; }
+      .expected-label, .category, .event-facts {
+        font-size: var(--ha-font-size-s, 12px);
+        color: var(--secondary-text-color);
+      }
+      .expected-date {
+        font-weight: var(--ha-font-weight-medium, 500);
+        color: var(--primary-text-color);
+        white-space: nowrap;
+      }
       .chevron { flex: none; color: var(--secondary-text-color); }
-      .history { padding: 0 0 12px 52px; }
-      .category { margin-bottom: 8px; }
+      .history { padding: 0 var(--ha-space-2, 8px) var(--ha-space-2, 8px) 56px; }
+      .category { margin-bottom: var(--ha-space-2, 8px); }
       .timeline { list-style: none; margin: 0; padding: 0; }
-      .timeline li { position: relative; padding: 0 0 12px 22px; }
-      .timeline li:last-child { padding-bottom: 4px; }
+      .timeline li { position: relative; padding: 0 0 var(--ha-space-3, 12px) 22px; }
+      .timeline li:last-child { padding-bottom: var(--ha-space-1, 4px); }
       .timeline li::before {
         content: ""; position: absolute; z-index: 1; box-sizing: border-box;
         left: 0; top: 5px; width: 10px; height: 10px; border-radius: 50%;
@@ -435,12 +474,17 @@ class CorreiosCard extends HTMLElement {
       }
       .timeline li:last-child::after { display: none; }
       .timeline li:first-child::before { background: var(--tone); }
-      .event-description { color: var(--primary-text-color); font-size: 0.95em; line-height: 20px; }
-      .event-detail { color: var(--secondary-text-color); font-size: 0.85em; overflow-wrap: anywhere; }
-      .details {
-        margin-top: 4px; padding: 4px 0; border: none; background: none; cursor: pointer;
-        font: inherit; font-size: 0.85em; font-weight: 500; color: var(--primary-color);
+      .event-description {
+        color: var(--primary-text-color);
+        font-size: var(--ha-font-size-m, 14px);
+        line-height: 20px;
       }
+      .event-detail {
+        color: var(--secondary-text-color);
+        font-size: var(--ha-font-size-s, 12px);
+        overflow-wrap: anywhere;
+      }
+      .details { margin-inline-start: calc(-1 * var(--ha-space-3, 12px)); }
     `;
   }
 }
