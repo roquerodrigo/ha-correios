@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1](https://github.com/roquerodrigo/ha-correios/compare/v1.3.0...v1.3.1) (2026-11-26)
+
+### Correções
+
+- O ícone e o logo da integração agora têm as resoluções exigidas pelo Home Assistant, o que evita que o HACS recuse a integração na validação. ([#51](https://github.com/roquerodrigo/ha-correios/pull/51))
+
 ## [1.3.0](https://github.com/roquerodrigo/ha-correios/compare/v1.2.1...v1.3.0) (2026-11-25)
 
 O card de pacotes foi redesenhado com os componentes nativos do Home Assistant e a linha do tempo do histórico foi corrigida.
